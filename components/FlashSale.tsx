@@ -201,11 +201,7 @@ export default function FlashSale() {
                       )}
                     </p>
 
-                    <div className="flex items-center gap-2 text-red-600 font-semibold text-xs bg-red-50 px-2 py-1 rounded-md w-fit mt-2">
-                      <WalletMinimal className="w-3 h-3" />
-                      Cọc:{" "}
-                      {formatPrice(getDeposit(Number(acc.price)))}
-                    </div>
+                    
                   </div>
 
                   <div className="hidden md:flex items-center justify-between">

@@ -47,12 +47,12 @@ export default function ContactPage() {
           </div>
 
           <h1 className="text-2xl md:text-4xl font-bold">
-            Bạn Cần Hỗ Trợ - Mua Acc Liên Quân 🔥
+            Bạn Cần Hỗ Trợ - Thuê Acc Liên Quân 🔥
           </h1>
 
           <p className="text-gray-600 text-sm md:text-base max-w-xl mx-auto">
-            Acc đẹp - giá thơm - giao ngay trong 30s 🚀 <br />
-            Không ưng hoàn tiền 💯
+            Acc đẹp - giao ngay trong 30s 🚀 <br />
+            
           </p>
         </div>
 

@@ -18,6 +18,7 @@ const categoryMap = {
 };
 
 const ranks = [
+  "Trong Ảnh",
   "Đồng",
   "Vàng",
   "Kim Cương",
@@ -67,7 +68,7 @@ function MoneyInput({
 export default function CreateProductForm() {
   const [form, setForm] = useState({
     code: generateCode(),
-    rank: "Đồng",
+    rank: "Trong Ảnh",
     price: "",
     fake_price: "",
     is_sale: false,
@@ -157,7 +158,7 @@ export default function CreateProductForm() {
       setFiles([]);
       setForm({
         code: generateCode(),
-        rank: "Đồng",
+        rank: "Trong Ảnh",
         price: "",
         fake_price: "",
         is_sale: false,

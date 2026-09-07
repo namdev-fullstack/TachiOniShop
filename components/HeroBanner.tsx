@@ -59,14 +59,12 @@ export default function HeroBanner() {
 
         {/* Title */}
         <h1 className="text-3xl sm:text-4xl md:text-5xl font-extrabold text-white mb-4 leading-tight [text-shadow:_0_0_10px_rgb(37_99_235_/_0.8),_0_0_20px_rgb(59_130_246_/_0.6)]">
-  Shop Bán Acc <span className="text-blue-400">Liên Quân Mobile</span> Uy Tín
+  Shop Giới Thiệu Acc <span className="text-blue-400">Liên Quân Mobile</span> Uy Tín
 </h1>
 
 
         {/* Description */}
-        <p className="text-base sm:text-lg text-gray-100 max-w-2xl mx-auto mb-8 leading-relaxed drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)]">
-  Mua bán tài khoản Liên Quân giá rẻ – Nhiều skin hiếm, full tướng, nạp uy tín và giao dịch an toàn 100%.
-</p>
+        
 
         {/* CTA buttons */}
         <div className="flex flex-col sm:flex-row justify-center gap-3 sm:gap-5">
