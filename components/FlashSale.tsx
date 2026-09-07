@@ -215,7 +215,7 @@ export default function FlashSale() {
                     </div>
 
                     <Button className="bg-gradient-to-r from-orange-500 to-red-500 text-white text-[11px] px-2 py-1">
-                      Mua <ChevronRight className="w-3 h-3 ml-1" />
+                      Thuê Ngay<ChevronRight className="w-3 h-3 ml-1" />
                     </Button>
                   </div>
                 </div>

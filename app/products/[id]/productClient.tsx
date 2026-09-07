@@ -8,7 +8,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
-
+import Link from "next/link";
 import {
   Select,
   SelectContent,
@@ -1076,30 +1076,34 @@ export default function ProductsPage() {
 
                       {/* BUTTON */}
 
-                      <Button
-                        className="
-                          bg-gradient-to-r
-                          from-orange-500
-                          to-red-500
-                          text-white
-                          text-[14px]
-                          font-semibold
-                          px-2
-                          py-1
-                        "
+                      <Link 
+                        href="https://zalo.me/0966216495"
+                        target="_blank"
+                        rel="noopener noreferrer"
                       >
+  <Button
+    className="
+      bg-gradient-to-r
+      from-orange-500
+      to-red-500
+      text-white
+      text-[14px]
+      font-semibold
+      px-2
+      py-1
+    "
+  >
+    Thuê Ngay
 
-                        Thuê Ngay
-
-                        <ChevronRight
-                          className="
-                            w-3
-                            h-3
-                            ml-1
-                          "
-                        />
-
-                      </Button>
+    <ChevronRight
+      className="
+        w-3
+        h-3
+        ml-1
+      "
+    />
+  </Button>
+</Link>
 
                     </div>
 
