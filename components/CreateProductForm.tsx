@@ -5,6 +5,8 @@ import { db } from "@/lib/firebaseConfig";
 import { addDoc, collection } from "firebase/firestore";
 import { generateCode } from "@/lib/utils";
 import { toast } from "sonner";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 
 // 👉 ENV
 const CLOUD_NAME = process.env.NEXT_PUBLIC_CLOUD_NAME!;
@@ -72,9 +74,9 @@ export default function CreateProductForm() {
     price: "",
     fake_price: "",
     is_sale: false,
-    is_active: true,
     highlight: "",
     category_id: "vip",
+    status: "unsold" as "sold" | "installment" | "unsold" | "hidden",
   });
 
   const [files, setFiles] = useState<File[]>([]);
@@ -147,6 +149,7 @@ export default function CreateProductForm() {
           ],
         quantity: 1,
         created_at: new Date(),
+        is_active: true,
       });
 
       toast.success("Đăng thành công 🚀", {
@@ -162,9 +165,9 @@ export default function CreateProductForm() {
         price: "",
         fake_price: "",
         is_sale: false,
-        is_active: true,
         highlight: "",
         category_id: "vip",
+        status: "unsold",
       });
     } catch (err) {
       console.log(err);
@@ -186,9 +189,9 @@ export default function CreateProductForm() {
 
       {/* RANK */}
       <div>
-        <label className="text-sm font-semibold text-gray-700">
+        <Label className="text-sm font-semibold text-gray-700">
           Rank
-        </label>
+        </Label>
         <select
           name="rank"
           value={form.rank}
@@ -206,9 +209,9 @@ export default function CreateProductForm() {
       {/* PRICE */}
       <div className="grid grid-cols-2 gap-4">
         <div>
-          <label className="text-sm font-semibold text-gray-700">
+          <Label className="text-sm font-semibold text-gray-700">
             Giá thật
-          </label>
+          </Label>
           <MoneyInput
             value={form.price}
             onChange={(val) =>
@@ -219,9 +222,9 @@ export default function CreateProductForm() {
         </div>
 
         <div>
-          <label className="text-sm font-semibold text-gray-700">
+          <Label className="text-sm font-semibold text-gray-700">
             Giá fake
-          </label>
+          </Label>
           <MoneyInput
             value={form.fake_price}
             onChange={(val) =>
@@ -237,9 +240,9 @@ export default function CreateProductForm() {
 
       {/* CATEGORY */}
       <div>
-        <label className="text-sm font-semibold text-gray-700">
+        <Label className="text-sm font-semibold text-gray-700">
           Loại acc
-        </label>
+        </Label>
         <select
           name="category_id"
           value={form.category_id}
@@ -259,10 +262,10 @@ export default function CreateProductForm() {
 
       {/* HIGHLIGHT */}
       <div>
-        <label className="text-sm font-semibold text-gray-700">
+        <Label className="text-sm font-semibold text-gray-700">
           Highlight
-        </label>
-        <input
+        </Label>
+        <Input
           value={form.highlight}
           placeholder="VD: VIP, Full skin..."
           onChange={(e) =>
@@ -271,8 +274,28 @@ export default function CreateProductForm() {
               highlight: e.target.value,
             }))
           }
-          className="w-full border p-3 rounded mt-1"
+          className="mt-1"
         />
+      </div>
+
+      {/* STATUS */}
+      <div>
+        <Label className="text-sm font-semibold text-gray-700">
+          Trạng thái
+        </Label>
+        <select
+          name="status"
+          value={form.status}
+          onChange={(e) =>
+            setForm((prev) => ({ ...prev, status: e.target.value as any }))
+          }
+          className="w-full border p-3 rounded mt-1"
+        >
+          <option value="unsold">Chưa bán</option>
+          <option value="sold">Đã bán</option>
+          <option value="installment">Đang trả góp</option>
+          <option value="hidden">Tạm ẩn</option>
+        </select>
       </div>
 
       {/* TOGGLE */}
@@ -301,39 +324,14 @@ export default function CreateProductForm() {
             />
           </button>
         </div>
-
-        {/* ACTIVE */}
-        <div className="flex items-center justify-between bg-green-50 px-4 py-2 rounded-xl w-full sm:w-auto">
-          <span className="text-sm font-medium text-green-600">
-            👁 Hiển thị
-          </span>
-          <button
-            type="button"
-            onClick={() =>
-              setForm((prev) => ({
-                ...prev,
-                is_active: !prev.is_active,
-              }))
-            }
-            className={`w-11 h-6 flex items-center rounded-full p-1 transition ${
-              form.is_active ? "bg-green-500" : "bg-gray-300"
-            }`}
-          >
-            <div
-              className={`bg-white w-4 h-4 rounded-full shadow-md transform transition ${
-                form.is_active ? "translate-x-5" : ""
-              }`}
-            />
-          </button>
-        </div>
       </div>
 
       {/* IMAGE */}
       <div>
-        <label className="text-sm font-semibold text-gray-700">
+        <Label className="text-sm font-semibold text-gray-700">
           Ảnh sản phẩm
-        </label>
-        <input
+        </Label>
+        <Input
           type="file"
           multiple
           onChange={handleSelectImages}

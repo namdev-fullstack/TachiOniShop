@@ -10,6 +10,7 @@ import { Card, CardContent } from "@/components/ui/card"
 import { Label } from "@/components/ui/label"
 
 import { Layers, PlusCircle } from "lucide-react"
+import AdminAuthWrapper from "@/components/AdminAuthWrapper"
 
 // convert slug
 function generateSlug(text: string) {
@@ -49,8 +50,10 @@ export default function CategoryPage() {
   }
 
   return (
-    <div className="max-w-xl mx-auto py-10 px-4">
-      <Card className="shadow-xl border-0 rounded-2xl">
+    <AdminAuthWrapper>
+      <div className="p-6">
+        <div className="max-w-xl mx-auto py-10 px-4">
+          <Card className="shadow-xl border-0 rounded-2xl">
         <CardContent className="p-6 space-y-6">
           
           {/* Title */}
@@ -95,6 +98,8 @@ export default function CategoryPage() {
           )}
         </CardContent>
       </Card>
-    </div>
+        </div>
+      </div>
+    </AdminAuthWrapper>
   )
 }

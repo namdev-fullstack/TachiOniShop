@@ -31,6 +31,8 @@ import {
 
 import { addPrice, formatPrice, getDeposit } from "@/lib/utils";
 import ProductDialog from "./ProductDialog";
+import ImageLightbox, { useImageLightbox } from "./ImageLightbox";
+import { ZoomIn } from "lucide-react";
 
 type Account = {
   id: string;
@@ -45,11 +47,15 @@ type Account = {
   is_active: boolean;
   images: string[];
   category: { id: string; name: string };
+  status?: "sold" | "installment" | "unsold" | "hidden";
 };
 
 export default function FlashSale() {
   const [data, setData] = useState<Account[]>([]);
   const [selectedProduct, setSelectedProduct] = useState<Account | null>(null);
+
+  // Lightbox hook
+  const { isOpen, images, currentIndex, openLightbox, closeLightbox } = useImageLightbox();
 
   useEffect(() => {
     const fetchData = async () => {
@@ -71,6 +77,7 @@ export default function FlashSale() {
           is_active: d.is_active ?? true,
           images: d.images || [],
           category: d.category || null,
+          status: d.status || "unsold",
         };
       });
 
@@ -80,7 +87,7 @@ export default function FlashSale() {
     fetchData();
   }, []);
 
-  const filtered = data.filter((acc) => acc.is_sale && acc.is_active);
+  const filtered = data.filter((acc) => acc.is_sale && acc.is_active && acc.status === "unsold");
 
   return (
     <div className="relative">
@@ -141,16 +148,27 @@ export default function FlashSale() {
             >
               <CardContent className="p-0">
                 {/* IMAGE */}
-                <div className="relative overflow-hidden rounded-t-lg">
+                <div
+                  className="relative overflow-hidden rounded-t-lg cursor-pointer"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    const imageUrls = acc.images?.length > 0 ? acc.images : ["/acc.jpg"];
+                    openLightbox(imageUrls, 0);
+                  }}
+                >
                  <Image
                                      src={acc.images?.[0] || "/acc.jpg"}
                                      alt={acc.code}
                                      width={400}
                                      height={400}
                                      quality={100}
-                                     className="w-full h-32 sm:h-56 object-cover object-top 
+                                     className="w-full h-32 sm:h-56 object-cover object-top
                    group-hover:scale-110 group-hover:-rotate-1 transition-transform duration-700"
                                    />
+
+                  <div className="absolute inset-0 bg-black/30 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center pointer-events-none">
+                    <ZoomIn className="w-6 h-6 text-white" />
+                  </div>
 
                   <Badge className="absolute top-2 left-2 bg-gradient-to-r from-red-500 to-red-600 text-white text-[10px] border-0 animate-pulse shadow-md">
                     Sale
@@ -227,7 +245,14 @@ export default function FlashSale() {
 
       {/* DIALOG GIỮ NGUYÊN */}
             <ProductDialog selectedProduct={selectedProduct} setSelectedProduct={setSelectedProduct} />
-      
+
+      {/* Image Lightbox */}
+      <ImageLightbox
+        images={images}
+        open={isOpen}
+        onClose={closeLightbox}
+        initialIndex={currentIndex}
+      />
     </div>
   );
 }

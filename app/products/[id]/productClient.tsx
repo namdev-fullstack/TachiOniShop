@@ -35,15 +35,7 @@ import { collection, getDocs } from "firebase/firestore";
 
 // Product Dialog
 import ProductDialog from "@/components/ProductDialog";
-
-// ==========================================
-// LIGHTBOX
-// ==========================================
-
-import Lightbox from "yet-another-react-lightbox";
-import Zoom from "yet-another-react-lightbox/plugins/zoom";
-
-import "yet-another-react-lightbox/styles.css";
+import ImageLightbox, { useImageLightbox } from "@/components/ImageLightbox";
 
 // ==========================================
 // FORMAT PRICE
@@ -76,6 +68,8 @@ type Account = {
   created_at: any;
   category_id: string;
   categories: Category | null;
+  status?: "sold" | "installment" | "unsold" | "hidden";
+  is_active: boolean;
 };
 
 // ==========================================
@@ -126,11 +120,7 @@ export default function ProductsPage() {
   // IMAGE LIGHTBOX
   // ========================================
 
-  const [lightboxOpen, setLightboxOpen] =
-    useState(false);
-
-  const [lightboxImage, setLightboxImage] =
-    useState("");
+  const { isOpen, images, currentIndex, openLightbox, closeLightbox } = useImageLightbox();
 
   // ========================================
   // FETCH ACCOUNTS
@@ -188,6 +178,9 @@ export default function ProductsPage() {
 
               categories:
                 d.category || null,
+
+              status: d.status || "unsold",
+              is_active: d.is_active ?? true,
             };
           });
 
@@ -303,10 +296,14 @@ export default function ProductsPage() {
         }
       }
 
+      // STATUS - chỉ hiển thị chưa bán và đang active
+      const matchStatus = acc.status === "unsold" && acc.is_active;
+
       return (
         matchSearch &&
         matchCategory &&
-        matchPrice
+        matchPrice &&
+        matchStatus
       );
     });
   }, [
@@ -410,16 +407,11 @@ export default function ProductsPage() {
   // OPEN LIGHTBOX
   // ==========================================
 
-  const openLightbox = (
+  const handleOpenLightbox = (
     item: Account
   ) => {
-    const image =
-      item.images?.[0] ||
-      "/acc.jpg";
-
-    setLightboxImage(image);
-
-    setLightboxOpen(true);
+    const imageUrls = item.images?.length > 0 ? item.images : ["/acc.jpg"];
+    openLightbox(imageUrls, 0);
   };
 
   // ==========================================
@@ -754,7 +746,7 @@ export default function ProductsPage() {
                     onClick={(e) => {
                       e.stopPropagation();
 
-                      openLightbox(item);
+                      handleOpenLightbox(item);
                     }}
                   >
 
@@ -1232,33 +1224,12 @@ export default function ProductsPage() {
       {/* IMAGE LIGHTBOX */}
       {/* ==================================== */}
 
-  <Lightbox
-  open={lightboxOpen}
-  close={() => setLightboxOpen(false)}
-  slides={[
-    {
-      src: lightboxImage,
-      alt: "Ảnh tài khoản",
-    },
-  ]}
-  plugins={[Zoom]}
-  zoom={{
-    maxZoomPixelRatio: 2,
-    scrollToZoom: true,
-    zoomInMultiplier: 1.5,
-  }}
-  controller={{
-    closeOnBackdropClick: true,
-  }}
-  animation={{
-    fade: 350,
-    swipe: 400,
-  }}
-  render={{
-    buttonPrev: () => null,
-    buttonNext: () => null,
-  }}
-/>
+      <ImageLightbox
+        images={images}
+        open={isOpen}
+        onClose={closeLightbox}
+        initialIndex={currentIndex}
+      />
 
       {/* ==================================== */}
       {/* PRODUCT DIALOG */}

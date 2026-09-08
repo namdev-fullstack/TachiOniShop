@@ -55,9 +55,8 @@ export default function AccStore() {
         {/* Grid list */}
         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 md:gap-6">
           {accounts.map((acc) => (
-            <Link href='/products'>
+            <Link href='/products' key={acc.id}>
             <Card
-              key={acc.id}
               className="group hover:shadow-xl hover:shadow-blue-500/20 hover:scale-105 transition-all duration-500 border-0 bg-white rounded-xl"
             >
               <CardContent className="p-0">
