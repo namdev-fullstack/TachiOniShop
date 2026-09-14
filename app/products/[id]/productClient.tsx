@@ -274,7 +274,7 @@ export default function ProductsPage() {
       const matchCategory =
         selectedCategory === "all" ||
         acc.category_id ===
-          selectedCategory;
+        selectedCategory;
 
       // PRICE
 
@@ -329,7 +329,7 @@ export default function ProductsPage() {
   const totalPages =
     Math.ceil(
       filteredData.length /
-        pageSize
+      pageSize
     );
 
   // ==========================================
@@ -661,449 +661,410 @@ export default function ProductsPage() {
             (item) => (
 
               <Card
-                key={item.id}
-                className="
-                  h-full
-                  flex
-                  flex-col
-                  hover:scale-105
-                  transition
-                  duration-300
-                  overflow-hidden
-                "
-              >
-
-                <CardContent
-                  className="
-                    relative
-                    p-0
-                    h-full
-                    flex
-                    flex-col
-                    overflow-hidden
-                  "
-                >
-
-                  {/* ============================== */}
-                  {/* BACKGROUND BLUR */}
-                  {/* ============================== */}
-
-                  <div
-                    className="
-                      absolute
-                      inset-0
-                      overflow-hidden
-                      pointer-events-none
-                    "
-                  >
-
-                    <Image
-                      src={
-                        item.images?.[0] ||
-                        "/acc.jpg"
-                      }
-                      alt=""
-                      fill
-                      quality={50}
-                      className="
-                        object-cover
-                        scale-125
-                        blur-3xl
-                        opacity-20
-                      "
-                    />
-
-                    <div
-                      className="
-                        absolute
-                        inset-0
-                        bg-gradient-to-br
-                        from-indigo-500/20
-                        via-purple-500/10
-                        to-pink-500/20
-                        blur-3xl
-                        scale-125
-                      "
-                    />
-
-                  </div>
-
-                  {/* ============================== */}
-                  {/* IMAGE */}
-                  {/* ============================== */}
-
-                  <div
-                    className="
-                      relative
-                      z-10
-                      w-full
-                      overflow-hidden
-                      rounded-t-lg
-                      bg-black
-                      cursor-zoom-in
-                      group
-                    "
-                    onClick={(e) => {
-                      e.stopPropagation();
-
-                      handleOpenLightbox(item);
-                    }}
-                  >
-
-                    <Image
-                      src={
-                        item.images?.[0] ||
-                        "/acc.jpg"
-                      }
-                      alt={item.code}
-                      width={400}
-                      height={400}
-                      quality={100}
-                      className="
-                        w-full
-                        h-auto
-                        object-contain
-                        object-top
-                        block
-                        transition-transform
-                        duration-300
-                        group-hover:scale-[1.02]
-                      "
-                    />
-
-                    {/* ============================ */}
-                    {/* ZOOM ICON */}
-                    {/* ============================ */}
-
-                    <div
-                      className="
-                        absolute
-                        inset-0
-                        z-20
-                        flex
-                        items-center
-                        justify-center
-                        opacity-0
-                        group-hover:opacity-100
-                        transition-opacity
-                        duration-200
-                        bg-black/10
-                        pointer-events-none
-                      "
-                    >
-
-                      <div
-                        className="
-                          w-11
-                          h-11
-                          rounded-full
-                          bg-black/50
-                          backdrop-blur-sm
-                          flex
-                          items-center
-                          justify-center
-                          text-white
-                          shadow-lg
-                        "
-                      >
-
-                        <ZoomIn
-                          className="
-                            w-5
-                            h-5
-                          "
-                        />
-
-                      </div>
-
-                    </div>
-
-                    {/* ============================ */}
-                    {/* SALE */}
-                    {/* ============================ */}
-
-                    {item.is_sale && (
-
-                      <Badge
-                        className="
-                          absolute
-                          top-2
-                          left-2
-                          bg-gradient-to-r
-                          from-red-500
-                          to-red-600
-                          text-white
-                          text-[10px]
-                          border-0
-                          animate-pulse
-                          shadow-md
-                        "
-                      >
-                        Sale
-                      </Badge>
-
-                    )}
-
-                    {/* ============================ */}
-                    {/* CATEGORY */}
-                    {/* ============================ */}
-
-                    <div
-                      className="
-                        absolute
-                        bottom-0
-                        left-0
-                      "
-                    >
-
-                      <div
-                        className="
-                          bg-gradient-to-r
-                          from-yellow-400
-                          to-orange-500
-                          text-white
-                          font-semibold
-                          text-[10px]
-                          px-2
-                          py-0.5
-                          rounded-tr-lg
-                          shadow-md
-                        "
-                      >
-
-                        {
-                          item.categories
-                            ?.name
-                        }
-
-                      </div>
-
-                    </div>
-
-                  </div>
-
-                  {/* ============================== */}
-                  {/* CONTENT */}
-                  {/* ============================== */}
-
-                  <div
-                    className="
-                      relative
-                      z-10
-                      p-3
-                      sm:p-4
-                      flex
-                      flex-col
-                      mt-auto
-                      bg-white
-                    "
-                  >
-
-                    {/* MÃ + RANK */}
-
-                    <div
-                      className="
-                        flex
-                        items-center
-                        justify-between
-                      "
-                    >
-
-                      <h3
-                        className="
-                          text-sm
-                          sm:text-base
-                          font-bold
-                          mb-1
-                          line-clamp-1
-                        "
-                      >
-                        Mã: {item.code}
-                      </h3>
-
-                      <div
-                        className="
-                          flex
-                          items-center
-                          space-x-1
-                          mb-3
-                        "
-                      >
-
-                        <Trophy
-                          className="
-                            w-3
-                            h-3
-                            text-yellow-500
-                          "
-                        />
-
-                        <span
-                          className="
-                            text-xs
-                            sm:text-sm
-                            font-medium
-                            text-gray-700
-                          "
-                        >
-                          Rank: {item.rank}
-                        </span>
-
-                      </div>
-
-                    </div>
-
-                    {/* ============================ */}
-                    {/* PRICE */}
-                    {/* ============================ */}
-
-                    <div className="mb-3">
-
-                      <div
-                        className="
-                          flex
-                          items-center
-                          space-x-2
-                          mb-1
-                        "
-                      >
-
-                        {/* GIÁ BÁN */}
-
-                        <span
-                          className="
-                            md:text-lg
-                            text-xs
-                            font-bold
-                            text-red-500
-                          "
-                        >
-                          {formatPrice(
-                            Number(
-                              item.price
-                            )
-                          )}
-                        </span>
-
-                        {/* GIÁ GỐC */}
-
-                        <span
-                          className="
-                            md:text-base
-                            text-xs
-                            line-through
-                            text-gray-400
-                          "
-                        >
-                          {formatPrice(
-                            Number(
-                              item.fake_price
-                            )
-                          )}
-                        </span>
-
-                      </div>
-
-                      {/* TIẾT KIỆM */}
-
-                      <p
-                        className="
-                          text-[14px]
-                          text-green-600
-                          font-bold
-                        "
-                      >
-                        Tiết kiệm{" "}
-
-                        {formatPrice(
-                          Number(
-                            item.fake_price
-                          ) -
-                            Number(
-                              item.price
-                            )
-                        )}
-
-                      </p>
-
-                    </div>
-
-                    {/* ============================ */}
-                    {/* STAR + BUTTON */}
-                    {/* ============================ */}
-
-                    <div
-                      className="
-                        hidden
-                        md:flex
-                        items-center
-                        justify-between
-                        mt-auto
-                      "
-                    >
-
-                      {/* STAR */}
-
-                      <div className="flex">
-
-                        {[
-                          ...Array(5),
-                        ].map(
-                          (_, i) => (
-
-                            <Star
-                              key={i}
-                              className="
-                                w-3
-                                h-3
-                                fill-yellow-400
-                                text-yellow-400
-                              "
-                            />
-
-                          )
-                        )}
-
-                      </div>
-
-                      {/* BUTTON */}
-
-                      <Link 
-                        href="https://zalo.me/0966216495"
-                        target="_blank"
-                        rel="noopener noreferrer"
-                      >
-  <Button
+  key={item.id}
+  className="
+    h-full
+    flex
+    flex-col
+    hover:scale-105
+    transition
+    duration-300
+    overflow-hidden
+  "
+>
+  <CardContent
     className="
-      bg-gradient-to-r
-      from-orange-500
-      to-red-500
-      text-white
-      text-[14px]
-      font-semibold
-      px-2
-      py-1
+      relative
+      p-0
+      h-full
+      flex
+      flex-col
+      overflow-hidden
     "
   >
-    Thuê Ngay
+    {/* ============================== */}
+    {/* BACKGROUND BLUR */}
+    {/* ============================== */}
 
-    <ChevronRight
+    <div
       className="
-        w-3
-        h-3
-        ml-1
+        absolute
+        inset-0
+        overflow-hidden
+        pointer-events-none
       "
-    />
-  </Button>
-</Link>
+    >
+      <Image
+        src={
+          item.images?.[0] ||
+          "/acc.jpg"
+        }
+        alt=""
+        fill
+        quality={50}
+        className="
+          object-cover
+          scale-125
+          blur-3xl
+          opacity-20
+        "
+      />
 
-                    </div>
+      <div
+        className="
+          absolute
+          inset-0
+          bg-gradient-to-br
+          from-indigo-500/20
+          via-purple-500/10
+          to-pink-500/20
+          blur-3xl
+          scale-125
+        "
+      />
+    </div>
 
-                  </div>
+    {/* ============================== */}
+    {/* IMAGE */}
+    {/* ============================== */}
 
-                </CardContent>
+    <div
+      className="
+        relative
+        z-10
+        w-full
+        overflow-hidden
+        rounded-t-lg
+        bg-black
+        cursor-zoom-in
+        group
+      "
+      onClick={(e) => {
+        e.stopPropagation();
+        handleOpenLightbox(item);
+      }}
+    >
+      <Image
+        src={
+          item.images?.[0] ||
+          "/acc.jpg"
+        }
+        alt={item.code}
+        width={400}
+        height={400}
+        quality={100}
+        className="
+          w-full
+          h-auto
+          object-contain
+          object-top
+          block
+          transition-transform
+          duration-300
+          group-hover:scale-[1.02]
+        "
+      />
 
-              </Card>
+      {/* ============================ */}
+      {/* ZOOM ICON */}
+      {/* ============================ */}
+
+      <div
+        className="
+          absolute
+          inset-0
+          z-20
+          flex
+          items-center
+          justify-center
+          opacity-0
+          group-hover:opacity-100
+          transition-opacity
+          duration-200
+          bg-black/10
+          pointer-events-none
+        "
+      >
+        <div
+          className="
+            w-11
+            h-11
+            rounded-full
+            bg-black/50
+            backdrop-blur-sm
+            flex
+            items-center
+            justify-center
+            text-white
+            shadow-lg
+          "
+        >
+          <ZoomIn
+            className="
+              w-5
+              h-5
+            "
+          />
+        </div>
+      </div>
+
+      {/* ============================ */}
+      {/* SALE */}
+      {/* ============================ */}
+
+      {item.is_sale && (
+        <Badge
+          className="
+            absolute
+            top-2
+            left-2
+            z-30
+            bg-gradient-to-r
+            from-red-500
+            to-red-600
+            text-white
+            text-[10px]
+            border-0
+            animate-pulse
+            shadow-md
+          "
+        >
+          Sale
+        </Badge>
+      )}
+
+      {/* ============================ */}
+      {/* CATEGORY - GÓC PHẢI TRÊN */}
+      {/* ============================ */}
+
+      <div
+        className="
+          absolute
+          top-2
+          right-2
+          z-30
+        "
+      >
+        <div
+          className="
+            bg-gradient-to-r
+            from-yellow-400
+            to-orange-500
+            text-white
+            font-semibold
+            text-[10px]
+            px-2
+            py-1
+            rounded-lg
+            shadow-md
+            backdrop-blur-sm
+          "
+        >
+          {item.categories?.name}
+        </div>
+      </div>
+    </div>
+
+    {/* ============================== */}
+    {/* CONTENT */}
+    {/* ============================== */}
+
+    <div
+      className="
+        relative
+        z-10
+        p-3
+        sm:p-4
+        flex
+        flex-col
+        mt-auto
+        bg-white
+      "
+    >
+      {/* ============================ */}
+      {/* MÃ + RANK */}
+      {/* ============================ */}
+
+      <div
+        className="
+          flex
+          items-center
+          justify-between
+        "
+      >
+        <h3
+          className="
+            text-sm
+            sm:text-base
+            font-bold
+            mb-1
+            line-clamp-1
+          "
+        >
+          Mã: {item.code}
+        </h3>
+
+        <div
+          className="
+            flex
+            items-center
+            space-x-1
+            mb-3
+          "
+        >
+          <Trophy
+            className="
+              w-3
+              h-3
+              text-yellow-500
+            "
+          />
+
+          <span
+            className="
+              text-xs
+              sm:text-sm
+              font-medium
+              text-gray-700
+            "
+          >
+            Rank: {item.rank}
+          </span>
+        </div>
+      </div>
+
+      {/* ============================ */}
+      {/* PRICE */}
+      {/* ============================ */}
+
+      <div className="mb-3">
+        <div
+          className="
+            flex
+            items-center
+            space-x-2
+            mb-1
+          "
+        >
+          {/* GIÁ BÁN */}
+
+          <span
+            className="
+              md:text-lg
+              text-xs
+              font-bold
+              text-red-500
+            "
+          >
+            {formatPrice(
+              Number(item.price)
+            )}
+          </span>
+
+          {/* GIÁ GỐC */}
+
+          <span
+            className="
+              md:text-base
+              text-xs
+              line-through
+              text-gray-400
+            "
+          >
+            {formatPrice(
+              Number(item.fake_price)
+            )}
+          </span>
+        </div>
+
+        {/* TIẾT KIỆM */}
+
+        <p
+          className="
+            text-[14px]
+            text-green-600
+            font-bold
+          "
+        >
+          Tiết kiệm{" "}
+
+          {formatPrice(
+            Number(item.fake_price) -
+            Number(item.price)
+          )}
+        </p>
+      </div>
+
+      {/* ============================ */}
+      {/* STAR + BUTTON */}
+      {/* ============================ */}
+
+      <div
+        className="
+          flex
+          items-center
+          justify-between
+          mt-auto
+        "
+      >
+        {/* STAR */}
+
+        <div className="flex">
+          {[
+            ...Array(5),
+          ].map(
+            (_, i) => (
+              <Star
+                key={i}
+                className="
+                  w-3
+                  h-3
+                  fill-yellow-400
+                  text-yellow-400
+                "
+              />
+            )
+          )}
+        </div>
+
+        {/* BUTTON */}
+
+        <Link
+          href="https://zalo.me/0966216495"
+          target="_blank"
+          rel="noopener noreferrer"
+        >
+          <Button
+            className="
+              bg-gradient-to-r
+              from-orange-500
+              to-red-500
+              text-white
+              text-[12px]
+              sm:text-[14px]
+              font-semibold
+              px-2
+              sm:px-3
+              py-1
+              h-8
+              sm:h-9
+            "
+          >
+            Thuê Ngay
+
+            <ChevronRight
+              className="
+                w-3
+                h-3
+                ml-1
+              "
+            />
+          </Button>
+        </Link>
+      </div>
+    </div>
+  </CardContent>
+</Card>
 
             )
           )

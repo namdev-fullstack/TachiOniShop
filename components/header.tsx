@@ -119,7 +119,7 @@ export default function Header() {
                 <Flame className="w-5 h-5 text-pink-500" /> Danh Sách Acc
               </Link>
               <Link
-                href="https://zalo.me/0966216495"
+                href="/contact"
                 target="_blank"
                 className={`flex items-center gap-3 text-gray-800 font-semibold hover:text-green-600 transition-colors ${pathname === "/contact" ? "text-green-600" : ""}`}
               >
