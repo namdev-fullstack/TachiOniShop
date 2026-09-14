@@ -19,7 +19,7 @@ export default function Footer() {
           <span className="text-xl font-bold">ShopLiênQuân</span>
         </div>
         <p className="text-gray-400 mb-4">
-          Nền tảng mua bán tài khoản game uy tín và an toàn hàng đầu Việt Nam.
+          Nền tảng giới thiệu game uy tín và an toàn hàng đầu Việt Nam.
         </p>
         <div className="flex space-x-4">
           <div className="w-10 h-10 bg-gray-700 hover:bg-gradient-to-r hover:from-violet-600 hover:to-blue-600 hover:scale-110 rounded-lg flex items-center justify-center cursor-pointer transition-all duration-300 shadow-lg">
