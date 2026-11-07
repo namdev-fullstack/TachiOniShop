@@ -11,8 +11,8 @@ import MaintenancePage from '@/components/MaintenancePage';
 const inter = Inter({ subsets: ['latin'] });
 
 export const metadata: Metadata = {
-  title: 'Shop giới thiệu tài khoản game uy tín',
-  description: 'Nền tảng giao lưu tài khoản game hàng đầu Việt Nam...',
+  title: 'Dịch vụ cho thuê tài khoản game uy tín',
+  description: 'Nền tảng hỗ trợ và cho thuê tài khoản game hàng đầu...',
   icons: {
     icon: "/avatar2-removebg.PNG", // favicon chính
     shortcut: "/avatar2-removebg.PNG",

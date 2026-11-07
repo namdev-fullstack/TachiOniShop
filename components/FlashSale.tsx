@@ -1,258 +1,394 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { db } from "@/lib/firebaseConfig";
-import { collection, getDocs } from "firebase/firestore";
-
-import { Swiper, SwiperSlide } from "swiper/react";
-import { Navigation, Autoplay } from "swiper/modules";
-
-import "swiper/css";
-import "swiper/css/navigation";
-
+import { useEffect, useState, useRef, useMemo } from "react";
 import Image from "next/image";
-
+import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { collection, getDocs } from "firebase/firestore";
+import { db } from "@/lib/firebaseConfig";
+import { formatPrice } from "@/lib/utils";
 import {
-  Dialog,
-  DialogContent,
-} from "@/components/ui/dialog";
-import { Badge } from "@/components/ui/badge";
-import { Card, CardContent } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-
-import {
-  ChevronRight,
+  Zap,
+  Flame,
   ChevronLeft,
-  Star,
-  Users,
-  Trophy,
-  WalletMinimal,
+  ChevronRight,
+  Clock,
+  Sparkles,
+  ZoomIn,
+  MessageCircle,
+  Phone,
+  ShieldCheck,
 } from "lucide-react";
+import ImagePreviewModal from "./ImagePreviewModal";
 
-import { addPrice, formatPrice, getDeposit } from "@/lib/utils";
-import ProductDialog from "./ProductDialog";
-import ImageLightbox, { useImageLightbox } from "./ImageLightbox";
-import { ZoomIn } from "lucide-react";
-
-type Account = {
+export type FlashSaleItem = {
   id: string;
   code: string;
-  rank: string;
-  heroes_count: number;
-  skins_count: number;
+  title: string;
   price: number;
   fake_price: number;
-  highlight: string;
-  is_sale: boolean;
-  is_active: boolean;
+  discount: number;
   images: string[];
-  category: { id: string; name: string };
-  status?: "sold" | "installment" | "unsold" | "hidden";
+  soldCount: number;
+  totalStock: number;
+  slotTime?: string;
 };
 
+// Dữ liệu mẫu phong phú theo đúng phong cách shopacclq.shop
+const fallbackFlashSales: FlashSaleItem[] = [
+  {
+    id: "fs-1",
+    code: "LQ-FS01",
+    title: "ACC LIÊN QUÂN 1M-3M · FLORENTINO SSS",
+    price: 1150000,
+    fake_price: 1650000,
+    discount: 30,
+    images: ["/acc.jpg"],
+    soldCount: 7,
+    totalStock: 10,
+    slotTime: "12:00",
+  },
+  {
+    id: "fs-2",
+    code: "LQ-FS02",
+    title: "ACC LIÊN QUÂN DƯỚI 1M · RAZ MUAY THÁI",
+    price: 680000,
+    fake_price: 990000,
+    discount: 31,
+    images: ["/acc1.jpg"],
+    soldCount: 9,
+    totalStock: 10,
+    slotTime: "12:00",
+  },
+  {
+    id: "fs-3",
+    code: "LQ-FS03",
+    title: "ACC REG TRẮNG TT · FULL NGỌC 90",
+    price: 85000,
+    fake_price: 150000,
+    discount: 43,
+    images: ["/bannerReg.jpeg"],
+    soldCount: 14,
+    totalStock: 15,
+    slotTime: "12:00",
+  },
+  {
+    id: "fs-4",
+    code: "LQ-FS04",
+    title: "ACC LIÊN QUÂN TỪ 3M+ · TULEN CHÍ TÔN",
+    price: 3200000,
+    fake_price: 4500000,
+    discount: 29,
+    images: ["/acc.jpg"],
+    soldCount: 3,
+    totalStock: 5,
+    slotTime: "12:00",
+  },
+  {
+    id: "fs-5",
+    code: "LQ-FS05",
+    title: "ACC LIÊN QUÂN 1M-3M · NAKROTH VỆ THẦN",
+    price: 1890000,
+    fake_price: 2600000,
+    discount: 27,
+    images: ["/acc1.jpg"],
+    soldCount: 6,
+    totalStock: 8,
+    slotTime: "12:00",
+  },
+  {
+    id: "fs-6",
+    code: "LQ-FS06",
+    title: "ACC LIÊN QUÂN DƯỚI 1M · AYA MC + FULL TƯỚNG",
+    price: 490000,
+    fake_price: 750000,
+    discount: 35,
+    images: ["/acc.jpg"],
+    soldCount: 8,
+    totalStock: 10,
+    slotTime: "12:00",
+  },
+];
+
 export default function FlashSale() {
-  const [data, setData] = useState<Account[]>([]);
-  const [selectedProduct, setSelectedProduct] = useState<Account | null>(null);
+  const router = useRouter();
+  const scrollContainerRef = useRef<HTMLDivElement>(null);
 
-  // Lightbox hook
-  const { isOpen, images, currentIndex, openLightbox, closeLightbox } = useImageLightbox();
+  const [items, setItems] = useState<FlashSaleItem[]>(fallbackFlashSales);
+  const [previewImage, setPreviewImage] = useState<string | null>(null);
 
+  // Fetch Firestore
   useEffect(() => {
-    const fetchData = async () => {
-      const snapshot = await getDocs(collection(db, "accounts"));
+    const fetchFlashSales = async () => {
+      try {
+        const snap = await getDocs(collection(db, "accounts"));
+        if (!snap.empty) {
+          const list: FlashSaleItem[] = [];
+          snap.docs.forEach((doc, idx) => {
+            const d = doc.data();
+            if (d.status === "sold" || d.is_active === false) return;
 
-      const list = snapshot.docs.map((doc) => {
-        const d = doc.data();
+            const price = Number(d.price) || 100000;
+            const fakePrice = Number(d.fake_price) || Math.round(price * 1.45);
+            const discount =
+              fakePrice > price
+                ? Math.round(((fakePrice - price) / fakePrice) * 100)
+                : 25;
 
-        return {
-          id: doc.id,
-          code: d.code,
-          rank: d.rank,
-          heroes_count: d.heroes_count || 0,
-          skins_count: d.skins_count || 0,
-          price: d.price || 0,
-          fake_price: d.fake_price || 0,
-          highlight: d.highlight || "",
-          is_sale: d.is_sale || false,
-          is_active: d.is_active ?? true,
-          images: d.images || [],
-          category: d.category || null,
-          status: d.status || "unsold",
-        };
-      });
+            const soldCount = 3 + ((idx * 3) % 8);
+            const totalStock = soldCount + 2 + ((idx * 2) % 4);
 
-      setData(list);
+            list.push({
+              id: doc.id,
+              code: d.code || `LQ-${100 + idx}`,
+              title: d.highlight || `Acc Liên Quân #${d.code || 100 + idx}`,
+              price,
+              fake_price: fakePrice,
+              discount,
+              images: d.images && d.images.length > 0 ? d.images : ["/acc.jpg"],
+              soldCount,
+              totalStock,
+              slotTime: "12:00",
+            });
+          });
+
+          if (list.length > 0) {
+            setItems(list);
+          }
+        }
+      } catch (err) {
+        console.warn("Using sample flash sale accounts");
+      }
     };
 
-    fetchData();
+    fetchFlashSales();
   }, []);
 
-  const filtered = data.filter((acc) => acc.is_sale && acc.is_active && acc.status === "unsold");
+  // Điều khiển cuộn ngang mượt mà
+  const scroll = (direction: "left" | "right") => {
+    if (!scrollContainerRef.current) return;
+    const container = scrollContainerRef.current;
+    const cardWidth = container.firstElementChild
+      ? (container.firstElementChild as HTMLElement).offsetWidth + 12
+      : 240;
+    const delta = direction === "left" ? -(cardWidth * 2) : cardWidth * 2;
+    container.scrollBy({ left: delta, behavior: "smooth" });
+  };
 
   return (
-    <div className="relative">
-      {/* Nút trái */}
-     {/* Nút trái */}
-<button
-  className="
-    flash-prev 
-    absolute left-2 md:-left-6 
-    top-1/2 -translate-y-1/2 z-10 
-    bg-white/90 backdrop-blur shadow-md 
-    p-2 md:p-3 rounded-full 
-    hover:scale-110 active:scale-95 transition
-  "
->
-  <ChevronLeft className="w-4 h-4 md:w-5 md:h-5" />
-</button>
+    <section className="w-full pt-6 sm:pt-8 md:pt-10 pb-3 sm:pb-5">
+      <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 space-y-4 sm:space-y-6">
+        
+        {/* Box Thông Báo Hỗ Trợ Dịch Vụ Nằm Trên Flash Sale */}
+        <div className="rounded-2xl border border-slate-200/90 bg-white p-3.5 sm:p-5 shadow-xs">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-4 text-xs sm:text-sm text-slate-700">
+            <div className="space-y-1">
+              <div className="flex items-center gap-2 font-bold text-slate-900 text-sm sm:text-base">
+                <span className="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse" />
+                <span>Trung Tâm Hỗ Trợ Dịch Vụ & Thuê Acc Trực Tiếp</span>
+              </div>
+              <p className="text-slate-600 text-[11px] sm:text-xs">
+                Toàn bộ tài khoản cung cấp đều được kiểm định an toàn, hỗ trợ đổi mật khẩu và bảo mật chu đáo.
+              </p>
+            </div>
 
-{/* Nút phải */}
-<button
-  className="
-    flash-next 
-    absolute right-2 md:-right-6 
-    top-1/2 -translate-y-1/2 z-10 
-    bg-white/90 backdrop-blur shadow-md 
-    p-2 md:p-3 rounded-full 
-    hover:scale-110 active:scale-95 transition
-  "
->
-  <ChevronRight className="w-4 h-4 md:w-5 md:h-5" />
-</button>
+            <div className="flex items-center gap-2 sm:gap-3 flex-wrap">
+              <a
+                href="https://zalo.me/0966216495"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-blue-50 hover:bg-blue-100 text-blue-700 font-semibold text-xs border border-blue-200 transition-colors"
+              >
+                <MessageCircle className="w-3.5 h-3.5" />
+                <span>Zalo Hỗ Trợ</span>
+              </a>
 
-      <Swiper
-        modules={[Navigation, Autoplay]}
-        navigation={{
-          prevEl: ".flash-prev",
-          nextEl: ".flash-next",
-        }}
-        autoplay={{
-          delay: 3000,
-          disableOnInteraction: false,
-        }}
-        loop={filtered.length > 4}
-        spaceBetween={12}
-        breakpoints={{
-          320: { slidesPerView: 2 },
-          640: { slidesPerView: 2 },
-          768: { slidesPerView: 3 },
-          1024: { slidesPerView: 4 },
-        }}
-        className="px-6"
-      >
-        {filtered.map((acc) => (
-          <SwiperSlide key={acc.id}>
-            <Card
-              onClick={() => setSelectedProduct(acc)}
-              className="group cursor-pointer hover:shadow-xl hover:shadow-red-500/20 hover:scale-[1.02] transition-all duration-500 border-0 bg-white hover:bg-gradient-to-br hover:from-white hover:to-red-50"
-            >
-              <CardContent className="p-0">
-                {/* IMAGE */}
-                <div
-                  className="relative overflow-hidden rounded-t-lg cursor-pointer"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    const imageUrls = acc.images?.length > 0 ? acc.images : ["/acc.jpg"];
-                    openLightbox(imageUrls, 0);
-                  }}
+              <a
+                href="tel:0966216495"
+                className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-emerald-50 hover:bg-emerald-100 text-emerald-700 font-semibold text-xs border border-emerald-200 transition-colors"
+              >
+                <Phone className="w-3.5 h-3.5" />
+                <span>0966.216.495</span>
+              </a>
+
+              <Link
+                href="/contact"
+                className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-red-600 hover:bg-red-700 text-white font-semibold text-xs transition-colors shadow-xs"
+              >
+                <ShieldCheck className="w-3.5 h-3.5" />
+                <span>Liên Hệ Thuê Ngay</span>
+              </Link>
+            </div>
+          </div>
+        </div>
+
+        {/* CONTAINER FLASH SALE DẠNG STRIP SANG TRỌNG */}
+        <div className="rounded-2xl sm:rounded-3xl border border-red-200/90 bg-gradient-to-b from-rose-50/70 via-white to-white shadow-xs overflow-hidden p-3 sm:p-5">
+          
+          {/* HEADER: Tiêu đề + Countdown + Mũi tên Scroll */}
+          <div className="flex flex-col md:flex-row md:items-center justify-between gap-3 pb-3 border-b border-rose-100">
+            
+            {/* Vế trái: Logo Flash Sale + Hôm Nay */}
+            <div className="flex items-center gap-2.5 sm:gap-3 flex-wrap">
+              {/* Badge Flash Sale */}
+              <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-gradient-to-r from-red-600 via-rose-600 to-amber-500 text-white font-black text-xs sm:text-sm uppercase tracking-wider shadow-sm shadow-red-500/20">
+                <Zap className="w-4 h-4 fill-amber-300 text-amber-300 animate-bounce" />
+                <span>FLASH SALE</span>
+              </div>
+
+              {/* Tag Hôm Nay */}
+              <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-xl bg-rose-100 text-red-700 font-extrabold text-xs sm:text-sm border border-rose-200 shadow-2xs">
+                <Sparkles className="w-3.5 h-3.5 text-red-600 animate-pulse" />
+                <span>Hôm Nay</span>
+              </span>
+            </div>
+
+            {/* Vế phải: Nút cuộn trái/phải */}
+            <div className="flex items-center justify-between md:justify-end gap-3">
+              <span className="text-[11px] sm:text-xs text-slate-500 font-medium hidden sm:inline-flex items-center gap-1">
+                <Clock className="w-3.5 h-3.5 text-rose-500" />
+                Ưu đãi giá tốt trong ngày
+              </span>
+
+              {/* Nút lùi/tiến desktop & tablet */}
+              <div className="flex items-center gap-1.5 ml-auto sm:ml-0">
+                <button
+                  type="button"
+                  aria-label="Xem sản phẩm trước"
+                  onClick={() => scroll("left")}
+                  className="w-8 h-8 rounded-full border border-slate-200 bg-white hover:bg-slate-100 hover:border-slate-300 active:scale-95 text-slate-700 flex items-center justify-center transition-all cursor-pointer shadow-2xs"
                 >
-                 <Image
-                                     src={acc.images?.[0] || "/acc.jpg"}
-                                     alt={acc.code}
-                                     width={400}
-                                     height={400}
-                                     quality={100}
-                                     className="w-full h-32 sm:h-56 object-cover object-top
-                   group-hover:scale-110 group-hover:-rotate-1 transition-transform duration-700"
-                                   />
+                  <ChevronLeft className="w-4 h-4" />
+                </button>
+                <button
+                  type="button"
+                  aria-label="Xem sản phẩm kế tiếp"
+                  onClick={() => scroll("right")}
+                  className="w-8 h-8 rounded-full border border-slate-200 bg-white hover:bg-slate-100 hover:border-slate-300 active:scale-95 text-slate-700 flex items-center justify-center transition-all cursor-pointer shadow-2xs"
+                >
+                  <ChevronRight className="w-4 h-4" />
+                </button>
+              </div>
+            </div>
 
-                  <div className="absolute inset-0 bg-black/30 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center pointer-events-none">
-                    <ZoomIn className="w-6 h-6 text-white" />
-                  </div>
+          </div>
 
-                  <Badge className="absolute top-2 left-2 bg-gradient-to-r from-red-500 to-red-600 text-white text-[10px] border-0 animate-pulse shadow-md">
-                    Sale
-                  </Badge>
+          {/* CAROUSEL / HORIZONTAL SCROLL CARDS */}
+          <div
+            ref={scrollContainerRef}
+            className="flex gap-2.5 sm:gap-3.5 overflow-x-auto no-scrollbar scroll-smooth pt-3 pb-1 -mx-1 px-1 touch-pan-x"
+            style={{
+              scrollbarWidth: "none",
+              msOverflowStyle: "none",
+            }}
+          >
+            {items.map((acc) => {
+              const imgSrc =
+                acc.images && acc.images.length > 0 ? acc.images[0] : "/acc.jpg";
+              const percentSold = Math.min(
+                100,
+                Math.round((acc.soldCount / acc.totalStock) * 100)
+              );
 
-                  <div className="absolute bottom-0 left-0">
-                    <div className="relative bg-gradient-to-r from-yellow-400 to-orange-500 text-white font-semibold text-[10px] px-2 py-0.5 rounded-tr-lg shadow-md">
-                      {acc.category?.name}
-                    </div>
-                  </div>
-                </div>
+              return (
+                <div
+                  key={acc.id}
+                  className="w-[165px] sm:w-[210px] md:w-[230px] shrink-0 rounded-xl sm:rounded-2xl border border-slate-200 bg-white hover:border-red-300 hover:shadow-md transition-all duration-300 flex flex-col justify-between overflow-hidden group"
+                >
+                  <div>
+                    {/* Thumbnail + Badges */}
+                    <div
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setPreviewImage(imgSrc);
+                      }}
+                      className="relative aspect-[4/3] w-full overflow-hidden bg-slate-100 cursor-zoom-in shine-glow"
+                    >
+                      <Image
+                        src={imgSrc}
+                        alt={acc.title}
+                        fill
+                        sizes="(max-width: 640px) 165px, 230px"
+                        className="object-cover group-hover:scale-105 transition-transform duration-500"
+                      />
 
-                {/* CONTENT */}
-                <div className="p-3 sm:p-4">
-                  <h3 className="text-sm sm:text-base font-bold mb-1 line-clamp-1">
-                    Mã:{acc.code}
-                  </h3>
-
-                  <div className="flex items-center space-x-1 mb-3">
-                    <Trophy className="w-3 h-3 text-yellow-500" />
-                    <span className="text-xs sm:text-sm font-medium text-gray-700">
-                      Rank: {acc.rank}
-                    </span>
-                  </div>
-
-                  
-                  <div className="mb-3">
-                    <div className="flex items-center space-x-1 mb-1">
-                      <span className="md:text-lg text-xs font-bold text-red-500">
-                        {formatPrice(
-                          Number(acc.price) +
-                            addPrice(Number(acc.price))
-                        )}
+                      {/* Badge Flash Sale góc trái */}
+                      <span className="absolute top-1.5 left-1.5 inline-flex items-center gap-0.5 text-[9px] sm:text-[10px] font-bold text-white px-1.5 py-0.5 rounded-md bg-gradient-to-r from-red-600 to-rose-600 shadow-xs">
+                        <Zap className="w-2.5 h-2.5 fill-current" />
+                        <span>Flash Sale</span>
                       </span>
-                      <span className="md:text-lg text-xs line-through text-gray-400">
-                        {formatPrice(
-                          Number(acc.fake_price)
-                        )}
+
+                      {/* Badge Giảm % góc phải */}
+                      <span className="absolute top-1.5 right-1.5 text-[9px] sm:text-[10px] font-black text-white px-1.5 py-0.5 rounded-md bg-amber-500 shadow-xs">
+                        -{acc.discount}%
                       </span>
+
+                      {/* Nút xem ảnh */}
+                      <button
+                        type="button"
+                        aria-label="Phóng to ảnh"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setPreviewImage(imgSrc);
+                        }}
+                        className="absolute bottom-1.5 right-1.5 w-6 h-6 rounded-full bg-black/50 text-white flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
+                      >
+                        <ZoomIn className="w-3 h-3" />
+                      </button>
                     </div>
 
-                    <p className="text-[11px] text-green-600 font-medium">
-                      Tiết kiệm{" "}
-                      {formatPrice(
-                        Number(acc.fake_price) -
-                          (Number(acc.price) +
-                            addPrice(Number(acc.price)))
-                      )}
-                    </p>
+                    {/* Nội dung chi tiết */}
+                    <div className="p-2 sm:p-3 space-y-1 sm:space-y-1.5">
+                      {/* Tiêu đề acc */}
+                      <h3 className="text-xs sm:text-sm font-bold text-slate-800 line-clamp-1 group-hover:text-red-600 transition-colors">
+                        {acc.title}
+                      </h3>
 
-                    
-                  </div>
+                      {/* Giá sale & giá fake */}
+                      <div className="space-y-0.5 pt-0.5 pb-1">
+                        <div className="flex items-baseline gap-1.5 flex-wrap">
+                          <span className="text-xs sm:text-base font-extrabold text-red-600">
+                            {formatPrice(acc.price)}
+                          </span>
+                        </div>
+                        {acc.fake_price > acc.price && (
+                          <div className="text-[10px] sm:text-xs text-slate-400 line-through">
+                            {formatPrice(acc.fake_price)}
+                          </div>
+                        )}
+                      </div>
 
-                  <div className="hidden md:flex items-center justify-between">
-                    <div className="flex">
-                      {[...Array(5)].map((_, i) => (
-                        <Star
-                          key={i}
-                          className="w-3 h-3 fill-yellow-400 text-yellow-400"
-                        />
-                      ))}
                     </div>
-
-                    <Button className="bg-gradient-to-r from-orange-500 to-red-500 text-white text-[11px] px-2 py-1">
-                      Thuê Ngay<ChevronRight className="w-3 h-3 ml-1" />
-                    </Button>
                   </div>
+
+                  {/* Nút hành động Thuê ngay */}
+                  <div className="p-2 sm:p-3 pt-0">
+                    <button
+                      type="button"
+                      onClick={() =>
+                        router.push(`/contact?acc=${encodeURIComponent(acc.code)}`)
+                      }
+                      className="w-full py-1.5 sm:py-2 rounded-xl bg-gradient-to-r from-red-600 to-rose-600 hover:from-red-700 hover:to-rose-700 active:scale-95 text-white font-bold text-[11px] sm:text-xs flex items-center justify-center gap-1 transition-all cursor-pointer shadow-2xs"
+                    >
+                      <Zap className="w-3 h-3 fill-current" />
+                      <span>Thuê Ngay</span>
+                    </button>
+                  </div>
+
                 </div>
-              </CardContent>
-            </Card>
-          </SwiperSlide>
-        ))}
-      </Swiper>
+              );
+            })}
+          </div>
 
-      {/* DIALOG GIỮ NGUYÊN */}
-            <ProductDialog selectedProduct={selectedProduct} setSelectedProduct={setSelectedProduct} />
+        </div>
 
-      {/* Image Lightbox */}
-      <ImageLightbox
-        images={images}
-        open={isOpen}
-        onClose={closeLightbox}
-        initialIndex={currentIndex}
+      </div>
+
+      {/* Modal xem ảnh chi tiết */}
+      <ImagePreviewModal
+        imageUrl={previewImage}
+        onClose={() => setPreviewImage(null)}
       />
-    </div>
+    </section>
   );
 }

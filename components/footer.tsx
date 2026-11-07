@@ -9,17 +9,17 @@ export default function Footer() {
     <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-96 h-96 bg-gradient-to-r from-violet-500/5 to-blue-500/5 rounded-full animate-pulse"></div>
   </div>
 
-  <div className="container mx-auto px-4">
+  <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8">
     <div className="grid grid-cols-1 md:grid-cols-4 gap-8 mb-8">
       <div>
         <div className="flex items-center space-x-2 mb-4">
           <div className="w-8 h-8 bg-gradient-to-r from-violet-500 to-blue-500 rounded-lg flex items-center justify-center">
             <Shield className="w-5 h-5 text-white" />
           </div>
-          <span className="text-xl font-bold">ShopLiênQuân</span>
+          <span className="text-xl font-bold">TachiOni</span>
         </div>
         <p className="text-gray-400 mb-4">
-          Nền tảng giới thiệu game uy tín và an toàn hàng đầu Việt Nam.
+          Hệ thống hỗ trợ và cung cấp dịch vụ trải nghiệm game uy tín, an toàn.
         </p>
         <div className="flex space-x-4">
           <div className="w-10 h-10 bg-gray-700 hover:bg-gradient-to-r hover:from-violet-600 hover:to-blue-600 hover:scale-110 rounded-lg flex items-center justify-center cursor-pointer transition-all duration-300 shadow-lg">
@@ -67,7 +67,7 @@ export default function Footer() {
 
     <div className="border-t border-gray-700 pt-8 flex flex-col md:flex-row justify-between items-center">
       <p className="text-gray-400 mb-4 md:mb-0">
-        © 2023 ShopLiênQuân. All rights reserved.
+        © 2026 TachiOni. All rights reserved.
       </p>
       <div className="flex items-center space-x-6 text-sm text-gray-400">
         <span className="flex items-center">

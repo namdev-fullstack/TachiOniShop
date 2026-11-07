@@ -1,14 +1,9 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-
-import Image from "next/image";
-
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
+import { useSearchParams } from "next/navigation";
 import { Input } from "@/components/ui/input";
-import Link from "next/link";
+import { Button } from "@/components/ui/button";
 import {
   Select,
   SelectContent,
@@ -16,34 +11,17 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-
 import { Skeleton } from "@/components/ui/skeleton";
-
-import {
-  ChevronRight,
-  Star,
-  Trophy,
-  Search,
-  ChevronLeft,
-  TriangleAlert,
-  ZoomIn,
-} from "lucide-react";
+import { Search, ChevronLeft, ChevronRight, TriangleAlert, ArrowUpDown } from "lucide-react";
 
 // Firebase
 import { db } from "@/lib/firebaseConfig";
 import { collection, getDocs } from "firebase/firestore";
 
-// Product Dialog
-import ProductDialog from "@/components/ProductDialog";
-import ImageLightbox, { useImageLightbox } from "@/components/ImageLightbox";
-
-// ==========================================
-// FORMAT PRICE
-// ==========================================
-
-function formatPrice(num: number) {
-  return num.toLocaleString("vi-VN") + "₫";
-}
+// Shared components
+import AccountCard from "@/components/AccountCard";
+import ImagePreviewModal from "@/components/ImagePreviewModal";
+import { motion, AnimatePresence } from "framer-motion";
 
 // ==========================================
 // TYPES
@@ -53,6 +31,9 @@ type Category = {
   id: string;
   name: string;
 };
+
+type CategoryKey = "all" | "white" | "lq_under1m" | "lq_1m_3m" | "lq_over3m";
+type SortKey = "newest" | "price_asc" | "price_desc";
 
 type Account = {
   id: string;
@@ -70,1141 +51,414 @@ type Account = {
   categories: Category | null;
   status?: "sold" | "installment" | "unsold" | "hidden";
   is_active: boolean;
+  viewers?: number;
+  categoryType: "white" | "lq_under1m" | "lq_1m_3m" | "lq_over3m";
 };
 
-// ==========================================
-// PAGE
-// ==========================================
+const CATEGORY_TABS: { id: CategoryKey; label: string; color: string; activeColor: string }[] = [
+  { id: "all",        label: "Tất Cả",          color: "",             activeColor: "bg-slate-900 text-white ring-slate-900" },
+  { id: "white",      label: "Acc Reg Trắng TT", color: "",             activeColor: "bg-emerald-600 text-white ring-emerald-600" },
+  { id: "lq_under1m", label: "Acc LQ < 1M",      color: "",             activeColor: "bg-blue-600 text-white ring-blue-600" },
+  { id: "lq_1m_3m",   label: "Acc LQ 1M–3M",     color: "",             activeColor: "bg-violet-600 text-white ring-violet-600" },
+  { id: "lq_over3m",  label: "Acc LQ 3M+",        color: "",             activeColor: "bg-amber-500 text-white ring-amber-500" },
+];
+
+function resolveCategoryType(
+  catId: string,
+  catName: string,
+  price: number
+): Account["categoryType"] {
+  if (catId === "white" || catName.includes("trắng") || catName.includes("reg")) return "white";
+  if (price < 1_000_000) return "lq_under1m";
+  if (price <= 3_000_000) return "lq_1m_3m";
+  return "lq_over3m";
+}
 
 export default function ProductsPage() {
+  const searchParams = useSearchParams();
+  const catQuery = searchParams ? searchParams.get("category") : null;
+
   // ========================================
   // DATA
   // ========================================
-
   const [data, setData] = useState<Account[]>([]);
-  const [categories, setCategories] =
-    useState<Category[]>([]);
+  const [loading, setLoading] = useState(true);
 
   // ========================================
-  // FILTER
+  // FILTER & SORT
   // ========================================
-
   const [search, setSearch] = useState("");
-  const [selectedCategory, setSelectedCategory] =
-    useState<string>("all");
-  const [priceRange, setPriceRange] =
-    useState<string>("all");
+  const [selectedCategory, setSelectedCategory] = useState<CategoryKey>(
+    (catQuery as CategoryKey) || "all"
+  );
+  const [sortKey, setSortKey] = useState<SortKey>("newest");
+
+  // Đồng bộ category khi URL query param thay đổi
+  useEffect(() => {
+    if (catQuery) setSelectedCategory(catQuery as CategoryKey);
+  }, [catQuery]);
 
   // ========================================
   // PAGINATION
   // ========================================
-
   const [page, setPage] = useState(1);
-
   const pageSize = 16;
 
   // ========================================
-  // LOADING
+  // IMAGE PREVIEW MODAL
   // ========================================
-
-  const [loading, setLoading] = useState(true);
-
-  // ========================================
-  // PRODUCT DIALOG
-  // ========================================
-
-  const [selectedProduct, setSelectedProduct] =
-    useState<Account | null>(null);
+  const [previewImage, setPreviewImage] = useState<string | null>(null);
 
   // ========================================
-  // IMAGE LIGHTBOX
+  // FETCH DATA
   // ========================================
-
-  const { isOpen, images, currentIndex, openLightbox, closeLightbox } = useImageLightbox();
-
-  // ========================================
-  // FETCH ACCOUNTS
-  // ========================================
-
   useEffect(() => {
     const fetchData = async () => {
-      setLoading(true);
-
       try {
-        const snapshot = await getDocs(
-          collection(db, "accounts")
-        );
+        setLoading(true);
+        const snapshot = await getDocs(collection(db, "accounts"));
 
-        const list: Account[] =
-          snapshot.docs.map((doc) => {
+        const list: Account[] = snapshot.docs
+          .map((doc, idx) => {
             const d = doc.data();
+            const price = Number(d.price) || 100000;
+            const fakePrice = Number(d.fake_price) || Math.round(price * 1.7);
+            const viewers = 8 + ((idx * 7) % 21);
+            const catId = (d.category_id || d.category?.id || "").toLowerCase().trim();
+            const catName = (d.category?.name || d.categories?.name || "").toLowerCase().trim();
 
             return {
               id: doc.id,
-
-              code: d.code,
-
-              rank: d.rank,
-
-              heroes_count:
-                d.heroes_count || 0,
-
-              skins_count:
-                d.skins_count || 0,
-
-              price:
-                d.price || 0,
-
-              fake_price:
-                d.fake_price || 0,
-
-              highlight:
-                d.highlight || "",
-
-              is_sale:
-                d.is_sale || false,
-
-              images:
-                Array.isArray(d.images)
-                  ? d.images
-                  : [],
-
-              created_at:
-                d.created_at?.toDate?.() ||
-                new Date(),
-
-              category_id:
-                d.category_id,
-
-              categories:
-                d.category || null,
-
+              code: d.code || `ACC-${100 + idx}`,
+              rank: d.rank || "Trong Ảnh",
+              heroes_count: d.heroes_count || 0,
+              skins_count: d.skins_count || 0,
+              price,
+              fake_price: fakePrice,
+              highlight: d.highlight || `Acc #${d.code || 100 + idx}`,
+              is_sale: d.is_sale ?? true,
+              images: d.images?.length > 0 ? d.images : ["/acc.jpg"],
+              created_at: d.created_at?.toDate?.() || new Date(),
+              category_id: catId,
+              categories: d.category || null,
               status: d.status || "unsold",
               is_active: d.is_active ?? true,
+              viewers,
+              categoryType: resolveCategoryType(catId, catName, price),
             };
-          });
+          })
+          .filter((acc) => acc.status !== "sold" && acc.is_active !== false);
 
-        // ====================================
-        // SORT MỚI NHẤT
-        // ====================================
-
+        // Sort mặc định: mới nhất
         list.sort((a, b) => {
-          const timeA =
-            a.created_at instanceof Date
-              ? a.created_at.getTime()
-              : 0;
-
-          const timeB =
-            b.created_at instanceof Date
-              ? b.created_at.getTime()
-              : 0;
-
+          const timeA = a.created_at instanceof Date ? a.created_at.getTime() : 0;
+          const timeB = b.created_at instanceof Date ? b.created_at.getTime() : 0;
           return timeB - timeA;
         });
 
         setData(list);
       } catch (error) {
-        console.error(
-          "Lỗi fetch accounts:",
-          error
-        );
+        console.error("Lỗi fetch accounts:", error);
       } finally {
         setLoading(false);
       }
     };
 
-    // ========================================
-    // FETCH CATEGORIES
-    // ========================================
-
-    const fetchCategories = async () => {
-      try {
-        const snapshot = await getDocs(
-          collection(db, "categories")
-        );
-
-        const list: Category[] =
-          snapshot.docs.map((doc) => ({
-            id: doc.id,
-            name: doc.data().name,
-          }));
-
-        setCategories(list);
-      } catch (error) {
-        console.error(
-          "Lỗi fetch categories:",
-          error
-        );
-      }
-    };
-
     fetchData();
-    fetchCategories();
   }, []);
 
-  // ==========================================
-  // RESET PAGE KHI FILTER
-  // ==========================================
-
+  // Reset page khi filter
   useEffect(() => {
     setPage(1);
-  }, [
-    selectedCategory,
-    search,
-    priceRange,
-  ]);
+  }, [selectedCategory, search, sortKey]);
 
   // ==========================================
-  // FILTER
+  // FILTER + SORT LOGIC
   // ==========================================
-
   const filteredData = useMemo(() => {
-    return data.filter((acc) => {
-      // SEARCH
-
+    let result = data.filter((acc) => {
       const matchSearch =
-        acc.code
-          ?.toLowerCase()
-          .includes(
-            search.toLowerCase()
-          );
-
-      // CATEGORY
+        !search.trim() ||
+        acc.code?.toLowerCase().includes(search.toLowerCase().trim()) ||
+        acc.highlight?.toLowerCase().includes(search.toLowerCase().trim());
 
       const matchCategory =
-        selectedCategory === "all" ||
-        acc.category_id ===
-        selectedCategory;
+        selectedCategory === "all" || acc.categoryType === selectedCategory;
 
-      // PRICE
-
-      let matchPrice = true;
-
-      if (priceRange !== "all") {
-        const [min, max] =
-          priceRange
-            .split("-")
-            .map(Number);
-
-        if (max) {
-          matchPrice =
-            acc.price >= min &&
-            acc.price <= max;
-        } else {
-          matchPrice =
-            acc.price >= min;
-        }
-      }
-
-      // STATUS - chỉ hiển thị chưa bán và đang active
-      const matchStatus = acc.status === "unsold" && acc.is_active;
-
-      return (
-        matchSearch &&
-        matchCategory &&
-        matchPrice &&
-        matchStatus
-      );
+      return matchSearch && matchCategory;
     });
-  }, [
-    data,
-    search,
-    selectedCategory,
-    priceRange,
-  ]);
+
+    if (sortKey === "price_asc") {
+      result = [...result].sort((a, b) => a.price - b.price);
+    } else if (sortKey === "price_desc") {
+      result = [...result].sort((a, b) => b.price - a.price);
+    }
+    // "newest" đã sort từ fetch
+
+    return result;
+  }, [data, search, selectedCategory, sortKey]);
 
   // ==========================================
   // PAGINATION
   // ==========================================
-
-  const start =
-    (page - 1) * pageSize;
-
-  const paginatedData =
-    filteredData.slice(
-      start,
-      start + pageSize
-    );
-
-  const totalPages =
-    Math.ceil(
-      filteredData.length /
-      pageSize
-    );
-
-  // ==========================================
-  // PAGE NUMBERS
-  // ==========================================
+  const totalPages = Math.ceil(filteredData.length / pageSize);
+  const start = (page - 1) * pageSize;
+  const paginatedData = filteredData.slice(start, start + pageSize);
 
   const renderPageNumbers = () => {
-    const pages: (
-      | number
-      | string
-    )[] = [];
-
+    const pages: (number | string)[] = [];
     const maxVisible = 5;
-
-    if (
-      totalPages <= maxVisible
-    ) {
-      for (
-        let i = 1;
-        i <= totalPages;
-        i++
-      ) {
-        pages.push(i);
-      }
+    if (totalPages <= maxVisible) {
+      for (let i = 1; i <= totalPages; i++) pages.push(i);
     } else {
       if (page <= 3) {
-        pages.push(
-          1,
-          2,
-          3,
-          4,
-          "...",
-          totalPages
-        );
-      } else if (
-        page >=
-        totalPages - 2
-      ) {
-        pages.push(
-          1,
-          "...",
-          totalPages - 3,
-          totalPages - 2,
-          totalPages - 1,
-          totalPages
-        );
+        pages.push(1, 2, 3, 4, "...", totalPages);
+      } else if (page >= totalPages - 2) {
+        pages.push(1, "...", totalPages - 3, totalPages - 2, totalPages - 1, totalPages);
       } else {
-        pages.push(
-          1,
-          "...",
-          page - 1,
-          page,
-          page + 1,
-          "...",
-          totalPages
-        );
+        pages.push(1, "...", page - 1, page, page + 1, "...", totalPages);
       }
     }
-
     return pages;
   };
 
-  // ==========================================
-  // SCROLL TOP KHI ĐỔI PAGE
-  // ==========================================
-
   useEffect(() => {
-    window.scrollTo({
-      top: 0,
-      behavior: "smooth",
-    });
+    window.scrollTo({ top: 0, behavior: "smooth" });
   }, [page]);
 
-  // ==========================================
-  // OPEN LIGHTBOX
-  // ==========================================
-
-  const handleOpenLightbox = (
-    item: Account
-  ) => {
-    const imageUrls = item.images?.length > 0 ? item.images : ["/acc.jpg"];
-    openLightbox(imageUrls, 0);
-  };
-
-  // ==========================================
-  // RENDER
-  // ==========================================
+  // Đếm số lượng theo category
+  const counts = useMemo(() => ({
+    all: data.length,
+    white: data.filter((a) => a.categoryType === "white").length,
+    lq_under1m: data.filter((a) => a.categoryType === "lq_under1m").length,
+    lq_1m_3m: data.filter((a) => a.categoryType === "lq_1m_3m").length,
+    lq_over3m: data.filter((a) => a.categoryType === "lq_over3m").length,
+  }), [data]);
 
   return (
-    <div
-      className="
-        container
-        mx-auto
-        md:px-4
-        px-2
-        py-6
-        space-y-6
-      "
-    >
-
-      {/* ==================================== */}
-      {/* TITLE */}
-      {/* ==================================== */}
-
-      <h1 className="text-2xl font-bold">
-        Danh sách sản phẩm
-      </h1>
-
-      {/* ==================================== */}
-      {/* SEARCH + FILTER */}
-      {/* ==================================== */}
-
-      <div
-        className="
-          flex
-          flex-col
-          md:flex-row
-          gap-3
-          md:items-end
-        "
-      >
-
-        {/* SEARCH */}
-
-        <div
-          className="
-            w-full
-            md:w-1/3
-            space-y-1
-          "
-        >
-
-          <span
-            className="
-              text-xs
-              font-semibold
-              text-gray-500
-            "
-          >
-            Tìm kiếm
-          </span>
-
-          <div className="relative">
-
-            <Search
-              className="
-                absolute
-                left-3
-                top-2.5
-                w-4
-                h-4
-                text-gray-400
-              "
-            />
-
-            <Input
-              placeholder="Nhập mã acc..."
-              value={search}
-              onChange={(e) =>
-                setSearch(
-                  e.target.value
-                )
-              }
-              className="pl-10"
-            />
-
-          </div>
-
-        </div>
-
-        {/* CATEGORY */}
-
-        <div
-          className="
-            space-y-1
-            w-full
-            md:w-56
-          "
-        >
-
-          <span
-            className="
-              text-xs
-              font-semibold
-              text-gray-500
-            "
-          >
-            Loại acc
-          </span>
-
-          <Select
-            onValueChange={
-              setSelectedCategory
-            }
-            defaultValue="all"
-          >
-
-            <SelectTrigger>
-              <SelectValue
-                placeholder="Chọn loại"
-              />
-            </SelectTrigger>
-
-            <SelectContent>
-
-              <SelectItem value="all">
-                Tất cả
-              </SelectItem>
-
-              {categories.map(
-                (c) => (
-                  <SelectItem
-                    key={c.id}
-                    value={c.id}
-                  >
-                    {c.name}
-                  </SelectItem>
-                )
-              )}
-
-            </SelectContent>
-
-          </Select>
-
-        </div>
-
-        {/* PRICE */}
-
-        <div
-          className="
-            space-y-1
-            w-full
-            md:w-56
-          "
-        >
-
-          <span
-            className="
-              text-xs
-              font-semibold
-              text-gray-500
-            "
-          >
-            Khoảng giá
-          </span>
-
-          <Select
-            onValueChange={
-              setPriceRange
-            }
-            defaultValue="all"
-          >
-
-            <SelectTrigger>
-              <SelectValue
-                placeholder="Chọn giá"
-              />
-            </SelectTrigger>
-
-            <SelectContent>
-
-              <SelectItem value="all">
-                Tất cả
-              </SelectItem>
-
-              <SelectItem value="0-500000">
-                Dưới 500K
-              </SelectItem>
-
-              <SelectItem value="500000-1500000">
-                500K - 1.5 Triệu
-              </SelectItem>
-
-              <SelectItem value="1500000-3500000">
-                1.5 Triệu - 3.5 Triệu
-              </SelectItem>
-
-              <SelectItem value="3500000">
-                Trên 3.5 Triệu
-              </SelectItem>
-
-            </SelectContent>
-
-          </Select>
-
-        </div>
-
-      </div>
-
-      {/* ==================================== */}
-      {/* GRID */}
-      {/* ==================================== */}
-
-      <div
-        className="
-          grid
-          grid-cols-2
-          md:grid-cols-3
-          lg:grid-cols-4
-          gap-3
-          items-stretch
-        "
-      >
-
-        {/* ================================== */}
-        {/* LOADING */}
-        {/* ================================== */}
-
-        {loading ? (
-
-          Array.from({
-            length: pageSize,
-          }).map((_, i) => (
-
-            <Skeleton
-              key={i}
-              className="
-                h-40
-                w-full
-                rounded-xl
-              "
-            />
-
-          ))
-
-        ) : paginatedData.length > 0 ? (
-
-          paginatedData.map(
-            (item) => (
-
-              <Card
-  key={item.id}
-  className="
-    h-full
-    flex
-    flex-col
-    hover:scale-105
-    transition
-    duration-300
-    overflow-hidden
-  "
->
-  <CardContent
-    className="
-      relative
-      p-0
-      h-full
-      flex
-      flex-col
-      overflow-hidden
-    "
-  >
-    {/* ============================== */}
-    {/* BACKGROUND BLUR */}
-    {/* ============================== */}
-
-    <div
-      className="
-        absolute
-        inset-0
-        overflow-hidden
-        pointer-events-none
-      "
-    >
-      <Image
-        src={
-          item.images?.[0] ||
-          "/acc.jpg"
-        }
-        alt=""
-        fill
-        quality={50}
-        className="
-          object-cover
-          scale-125
-          blur-3xl
-          opacity-20
-        "
-      />
-
-      <div
-        className="
-          absolute
-          inset-0
-          bg-gradient-to-br
-          from-indigo-500/20
-          via-purple-500/10
-          to-pink-500/20
-          blur-3xl
-          scale-125
-        "
-      />
-    </div>
-
-    {/* ============================== */}
-    {/* IMAGE */}
-    {/* ============================== */}
-
-    <div
-      className="
-        relative
-        z-10
-        w-full
-        overflow-hidden
-        rounded-t-lg
-        bg-black
-        cursor-zoom-in
-        group
-      "
-      onClick={(e) => {
-        e.stopPropagation();
-        handleOpenLightbox(item);
-      }}
-    >
-      <Image
-        src={
-          item.images?.[0] ||
-          "/acc.jpg"
-        }
-        alt={item.code}
-        width={400}
-        height={400}
-        quality={100}
-        className="
-          w-full
-          h-auto
-          object-contain
-          object-top
-          block
-          transition-transform
-          duration-300
-          group-hover:scale-[1.02]
-        "
-      />
-
-      {/* ============================ */}
-      {/* ZOOM ICON */}
-      {/* ============================ */}
-
-      <div
-        className="
-          absolute
-          inset-0
-          z-20
-          flex
-          items-center
-          justify-center
-          opacity-0
-          group-hover:opacity-100
-          transition-opacity
-          duration-200
-          bg-black/10
-          pointer-events-none
-        "
-      >
-        <div
-          className="
-            w-11
-            h-11
-            rounded-full
-            bg-black/50
-            backdrop-blur-sm
-            flex
-            items-center
-            justify-center
-            text-white
-            shadow-lg
-          "
-        >
-          <ZoomIn
-            className="
-              w-5
-              h-5
-            "
-          />
-        </div>
-      </div>
-
-      {/* ============================ */}
-      {/* SALE */}
-      {/* ============================ */}
-
-      {item.is_sale && (
-        <Badge
-          className="
-            absolute
-            top-2
-            left-2
-            z-30
-            bg-gradient-to-r
-            from-red-500
-            to-red-600
-            text-white
-            text-[10px]
-            border-0
-            animate-pulse
-            shadow-md
-          "
-        >
-          Sale
-        </Badge>
-      )}
-
-      {/* ============================ */}
-      {/* CATEGORY - GÓC PHẢI TRÊN */}
-      {/* ============================ */}
-
-      <div
-        className="
-          absolute
-          top-2
-          right-2
-          z-30
-        "
-      >
-        <div
-          className="
-            bg-gradient-to-r
-            from-yellow-400
-            to-orange-500
-            text-white
-            font-semibold
-            text-[10px]
-            px-2
-            py-1
-            rounded-lg
-            shadow-md
-            backdrop-blur-sm
-          "
-        >
-          {item.categories?.name}
-        </div>
-      </div>
-    </div>
-
-    {/* ============================== */}
-    {/* CONTENT */}
-    {/* ============================== */}
-
-    <div
-      className="
-        relative
-        z-10
-        p-3
-        sm:p-4
-        flex
-        flex-col
-        mt-auto
-        bg-white
-      "
-    >
-      {/* ============================ */}
-      {/* MÃ + RANK */}
-      {/* ============================ */}
-
-      <div
-        className="
-          flex
-          items-center
-          justify-between
-        "
-      >
-        <h3
-          className="
-            text-sm
-            sm:text-base
-            font-bold
-            mb-1
-            line-clamp-1
-          "
-        >
-          Mã: {item.code}
-        </h3>
-
-        <div
-          className="
-            flex
-            items-center
-            space-x-1
-            mb-3
-          "
-        >
-          <Trophy
-            className="
-              w-3
-              h-3
-              text-yellow-500
-            "
-          />
-
-          <span
-            className="
-              text-xs
-              sm:text-sm
-              font-medium
-              text-gray-700
-            "
-          >
-            Rank: {item.rank}
-          </span>
-        </div>
-      </div>
-
-      {/* ============================ */}
-      {/* PRICE */}
-      {/* ============================ */}
-
-      <div className="mb-3">
-        <div
-          className="
-            flex
-            items-center
-            space-x-2
-            mb-1
-          "
-        >
-          {/* GIÁ BÁN */}
-
-          <span
-            className="
-              md:text-lg
-              text-xs
-              font-bold
-              text-red-500
-            "
-          >
-            {formatPrice(
-              Number(item.price)
-            )}
-          </span>
-
-          {/* GIÁ GỐC */}
-
-          <span
-            className="
-              md:text-base
-              text-xs
-              line-through
-              text-gray-400
-            "
-          >
-            {formatPrice(
-              Number(item.fake_price)
-            )}
-          </span>
-        </div>
-
-        {/* TIẾT KIỆM */}
-
-        <p
-          className="
-            text-[14px]
-            text-green-600
-            font-bold
-          "
-        >
-          Tiết kiệm{" "}
-
-          {formatPrice(
-            Number(item.fake_price) -
-            Number(item.price)
-          )}
-        </p>
-      </div>
-
-      {/* ============================ */}
-      {/* STAR + BUTTON */}
-      {/* ============================ */}
-
-      <div
-        className="
-          flex
-          items-center
-          justify-between
-          mt-auto
-        "
-      >
-        {/* STAR */}
-
-        <div className="flex">
-          {[
-            ...Array(5),
-          ].map(
-            (_, i) => (
-              <Star
-                key={i}
-                className="
-                  w-3
-                  h-3
-                  fill-yellow-400
-                  text-yellow-400
-                "
-              />
-            )
-          )}
-        </div>
-
-        {/* BUTTON */}
-
-        <Link
-          href="https://zalo.me/0966216495"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Button
-            className="
-              bg-gradient-to-r
-              from-orange-500
-              to-red-500
-              text-white
-              text-[12px]
-              sm:text-[14px]
-              font-semibold
-              px-2
-              sm:px-3
-              py-1
-              h-8
-              sm:h-9
-            "
-          >
-            Thuê Ngay
-
-            <ChevronRight
-              className="
-                w-3
-                h-3
-                ml-1
-              "
-            />
-          </Button>
-        </Link>
-      </div>
-    </div>
-  </CardContent>
-</Card>
-
-            )
-          )
-
-        ) : (
-
-          /* ================================ */
-          /* EMPTY */
-          /* ================================ */
-
-          <div
-            className="
-              col-span-full
-              text-center
-              py-10
-            "
-          >
-
-            <TriangleAlert
-              className="
-                mx-auto
-                w-10
-                h-10
-                text-red-400
-              "
-            />
-
-            <p>
-              Không tìm thấy acc
+    <div className="min-h-screen bg-white py-4 sm:py-8">
+      <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 space-y-4 sm:space-y-5">
+
+        {/* TITLE + INFO */}
+        <div className="border-b border-slate-200 pb-4 space-y-3">
+          <div>
+            <h1 className="text-xl sm:text-2xl md:text-3xl font-black text-slate-900 tracking-tight">
+              Kho Tài Khoản Trải Nghiệm
+            </h1>
+            <p className="text-xs sm:text-sm text-slate-500 mt-1">
+              <span className="font-semibold text-slate-700">{filteredData.length}</span> tài khoản có sẵn · Cập nhật liên tục 24/7
             </p>
-
           </div>
 
+          {/* Cam kết */}
+          <motion.div
+            className="flex flex-wrap gap-2"
+            initial="hidden"
+            animate="visible"
+            variants={{ visible: { transition: { staggerChildren: 0.08 } } }}
+          >
+            {[
+              { icon: "🔒", text: "Acc không chung chủ" },
+              { icon: "🔄", text: "Hỗ trợ đổi thông tin" },
+              { icon: "🛡️", text: "Bảo hành 100%" },
+              { icon: "⚡", text: "Bàn giao tức thì" },
+            ].map((item) => (
+              <motion.span
+                key={item.text}
+                variants={{
+                  hidden: { opacity: 0, scale: 0.85 },
+                  visible: { opacity: 1, scale: 1, transition: { duration: 0.2 } },
+                }}
+                className="inline-flex items-center gap-1 text-[11px] sm:text-xs font-semibold text-emerald-700 bg-emerald-50 border border-emerald-200 px-2.5 py-1 rounded-full"
+              >
+                {item.icon} {item.text}
+              </motion.span>
+            ))}
+          </motion.div>
+
+          {/* Lưu ý */}
+          <div className="bg-amber-50 border border-amber-200 rounded-xl px-3 py-2.5 flex gap-2 items-start">
+            <span className="text-amber-500 text-sm mt-px shrink-0">⚠️</span>
+            <p className="text-[11px] sm:text-xs text-amber-800 leading-relaxed">
+              <span className="font-bold">Lưu ý:</span> Acc khẳng định đúng như hình & mô tả. Mức rank có thể thay đổi do reset theo mùa giải.
+            </p>
+          </div>
+        </div>
+
+        {/* CATEGORY TABS — 5 loại chuẩn */}
+        <div className="grid grid-cols-2 sm:grid-cols-5 gap-2">
+          {CATEGORY_TABS.map((tab, i) => {
+            const isActive = selectedCategory === tab.id;
+            const count = counts[tab.id];
+            return (
+              <motion.button
+                key={tab.id}
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: i * 0.06, duration: 0.25 }}
+                whileTap={{ scale: 0.96 }}
+                type="button"
+                onClick={() => setSelectedCategory(tab.id)}
+                className={`w-full py-2 sm:py-2.5 px-2 rounded-xl text-[11px] sm:text-xs font-bold transition-all cursor-pointer touch-manipulation select-none flex items-center justify-center gap-1.5 ring-2 ${
+                  isActive
+                    ? `${tab.activeColor} shadow-sm`
+                    : "bg-white text-slate-700 hover:bg-slate-50 border border-slate-200 shadow-xs ring-transparent"
+                }`}
+              >
+                <span className="leading-tight text-center">{tab.label}</span>
+                <span className={`text-[10px] px-1.5 py-0.5 rounded-full font-semibold shrink-0 ${
+                  isActive ? "bg-white/25 text-white" : "bg-slate-100 text-slate-500"
+                }`}>
+                  {count}
+                </span>
+              </motion.button>
+            );
+          })}
+        </div>
+
+        {/* SEARCH + SORT BAR */}
+        <div className="flex flex-col sm:flex-row gap-2.5 sm:items-center">
+          {/* Search */}
+          <div className="relative flex-1">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+            <Input
+              placeholder="Tìm theo mã acc hoặc mô tả..."
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              className="pl-9 rounded-xl border-slate-200 text-xs sm:text-sm h-10"
+            />
+          </div>
+
+          {/* Sort */}
+          <div className="sm:w-52">
+            <Select onValueChange={(v) => setSortKey(v as SortKey)} value={sortKey}>
+              <SelectTrigger className="rounded-xl border-slate-200 text-xs sm:text-sm h-10">
+                <ArrowUpDown className="w-3.5 h-3.5 mr-1.5 text-slate-400 shrink-0" />
+                <SelectValue placeholder="Sắp xếp" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="newest">Mới nhất</SelectItem>
+                <SelectItem value="price_asc">Giá: Thấp → Cao</SelectItem>
+                <SelectItem value="price_desc">Giá: Cao → Thấp</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+        </div>
+
+        {/* GRID SẢN PHẨM */}
+        <AnimatePresence mode="wait">
+          <motion.div
+            key={selectedCategory + sortKey + page}
+            initial={{ opacity: 0, y: 12 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -8 }}
+            transition={{ duration: 0.22, ease: "easeOut" }}
+            className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-2.5 sm:gap-4 md:gap-5"
+          >
+          {loading ? (
+            Array.from({ length: 8 }).map((_, i) => (
+              <motion.div
+                key={i}
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={{ delay: i * 0.05 }}
+                className="rounded-2xl border border-slate-200 bg-white p-3 space-y-3"
+              >
+                <Skeleton className="aspect-square w-full rounded-xl" />
+                <Skeleton className="h-4 w-3/4 rounded" />
+                <Skeleton className="h-4 w-1/2 rounded" />
+                <Skeleton className="h-9 w-full rounded-xl" />
+              </motion.div>
+            ))
+          ) : paginatedData.length > 0 ? (
+            paginatedData.map((item, i) => (
+              <motion.div
+                key={item.id}
+                initial={{ opacity: 0, y: 16 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: i * 0.04, duration: 0.25, ease: "easeOut" }}
+              >
+                <AccountCard
+                  item={{
+                    id: item.id,
+                    code: item.code,
+                    title: item.highlight || `Acc #${item.code}`,
+                    price: item.price,
+                    fake_price: item.fake_price,
+                    images: item.images,
+                    viewers: item.viewers,
+                  }}
+                  onPreviewImage={(url) => setPreviewImage(url)}
+                />
+              </motion.div>
+            ))
+          ) : (
+            <motion.div
+              initial={{ opacity: 0, scale: 0.97 }}
+              animate={{ opacity: 1, scale: 1 }}
+              className="col-span-full text-center py-16 bg-white rounded-2xl border border-slate-200 p-8 space-y-3"
+            >
+              <TriangleAlert className="mx-auto w-10 h-10 text-amber-500" />
+              <h3 className="font-bold text-slate-800 text-base">Không tìm thấy tài khoản phù hợp</h3>
+              <p className="text-xs sm:text-sm text-slate-500 max-w-md mx-auto">
+                Vui lòng thử đổi bộ lọc thể loại hoặc xoá từ khoá tìm kiếm.
+              </p>
+              <Button
+                variant="outline"
+                onClick={() => { setSearch(""); setSelectedCategory("all"); setSortKey("newest"); }}
+                className="rounded-xl mt-2 text-xs"
+              >
+                Đặt lại bộ lọc
+              </Button>
+            </motion.div>
+          )}
+          </motion.div>
+        </AnimatePresence>
+
+        {/* PAGINATION */}
+        {totalPages > 1 && (
+          <div className="flex justify-center items-center gap-1.5 pt-4">
+            <Button
+              variant="outline" size="sm"
+              disabled={page === 1}
+              onClick={() => setPage((p) => Math.max(p - 1, 1))}
+              className="rounded-xl h-9 w-9 p-0"
+            >
+              <ChevronLeft className="w-4 h-4" />
+            </Button>
+
+            {renderPageNumbers().map((p, i) =>
+              p === "..." ? (
+                <span key={i} className="px-2 text-slate-400 text-sm">...</span>
+              ) : (
+                <Button
+                  key={p} size="sm"
+                  variant={p === page ? "default" : "outline"}
+                  onClick={() => setPage(p as number)}
+                  className={`rounded-xl h-9 w-9 p-0 text-xs font-bold ${p === page ? "bg-slate-900 text-white" : ""}`}
+                >
+                  {p}
+                </Button>
+              )
+            )}
+
+            <Button
+              variant="outline" size="sm"
+              disabled={page === totalPages}
+              onClick={() => setPage((p) => Math.min(p + 1, totalPages))}
+              className="rounded-xl h-9 w-9 p-0"
+            >
+              <ChevronRight className="w-4 h-4" />
+            </Button>
+          </div>
         )}
 
       </div>
 
-      {/* ==================================== */}
-      {/* PAGINATION */}
-      {/* ==================================== */}
-
-      {totalPages > 1 && (
-
-        <div
-          className="
-            flex
-            justify-center
-            gap-2
-          "
-        >
-
-          {/* PREVIOUS */}
-
-          <Button
-            disabled={
-              page === 1
-            }
-            onClick={() =>
-              setPage(
-                (p) => p - 1
-              )
-            }
-          >
-            <ChevronLeft />
-          </Button>
-
-          {/* PAGE NUMBERS */}
-
-          {renderPageNumbers().map(
-            (p, i) =>
-              p === "..." ? (
-
-                <span key={i}>
-                  ...
-                </span>
-
-              ) : (
-
-                <Button
-                  key={p}
-                  onClick={() =>
-                    setPage(
-                      p as number
-                    )
-                  }
-                  variant={
-                    p === page
-                      ? "default"
-                      : "outline"
-                  }
-                >
-                  {p}
-                </Button>
-
-              )
-          )}
-
-          {/* NEXT */}
-
-          <Button
-            disabled={
-              page === totalPages
-            }
-            onClick={() =>
-              setPage(
-                (p) => p + 1
-              )
-            }
-          >
-            <ChevronRight />
-          </Button>
-
-        </div>
-
-      )}
-
-      {/* ==================================== */}
-      {/* IMAGE LIGHTBOX */}
-      {/* ==================================== */}
-
-      <ImageLightbox
-        images={images}
-        open={isOpen}
-        onClose={closeLightbox}
-        initialIndex={currentIndex}
+      <ImagePreviewModal
+        imageUrl={previewImage}
+        onClose={() => setPreviewImage(null)}
       />
-
-      {/* ==================================== */}
-      {/* PRODUCT DIALOG */}
-      {/* ==================================== */}
-
-      <ProductDialog
-        selectedProduct={
-          selectedProduct
-        }
-        setSelectedProduct={
-          setSelectedProduct
-        }
-      />
-
     </div>
   );
 }
