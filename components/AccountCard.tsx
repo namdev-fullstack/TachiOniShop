@@ -42,18 +42,6 @@ export default function AccountCard({ item, onPreviewImage }: AccountCardProps) 
   const fakePrice = Number(item.fake_price) || Math.round(realPrice * 1.7);
   const viewers = getViewersCount(item.code || item.id, item.viewers);
 
-  // Số đã bán: dùng soldCount nếu có, ngược lại tính từ hash của code để ổn định
-  const soldCount = (() => {
-    if (item.soldCount && item.soldCount > 0) return item.soldCount;
-    let hash = 0;
-    const key = item.code || item.id;
-    for (let i = 0; i < key.length; i++) {
-      hash = (hash << 5) - hash + key.charCodeAt(i);
-      hash |= 0;
-    }
-    return 10 + (Math.abs(hash) % 90);
-  })();
-
   return (
     <motion.article
       layout
@@ -121,12 +109,6 @@ export default function AccountCard({ item, onPreviewImage }: AccountCardProps) 
               </span>
             )}
           </div>
-
-          {/* Đã bán */}
-          <p className="text-[10px] sm:text-xs text-slate-400 font-medium">
-            Đã bán:{" "}
-            <span className="text-slate-600 font-semibold">{soldCount}</span>
-          </p>
         </div>
       </div>
 

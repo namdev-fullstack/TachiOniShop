@@ -240,23 +240,20 @@ export default function HomeProductList({
     currentTab === "all" ? "/products" : `/products?category=${currentTab}`;
 
   return (
-    <section id="product-list-section" className="relative w-full py-3 sm:py-6 bg-slate-50/50">
-      <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8">
+    <section id="product-list-section" className="relative w-full py-5 sm:py-10 md:py-14 bg-slate-50/60">
+      <div className="max-w-7xl mx-auto px-2.5 sm:px-6 lg:px-8">
         
         {/* Header danh sách & Nút xem thêm */}
-        <div className="flex items-center justify-between gap-2 mb-3 sm:mb-5">
-          <div>
-            <h2 className="text-base sm:text-xl md:text-2xl font-bold text-slate-900 tracking-tight">
+        <div className="flex items-center justify-between gap-3 pb-3 sm:pb-4 border-b border-slate-200/80 mb-4 sm:mb-6">
+          <div className="border-l-4 border-red-600 pl-2.5 sm:pl-3">
+            <h2 className="text-base sm:text-xl md:text-2xl font-black text-slate-900 tracking-tight uppercase leading-none">
               Danh Sách Tài Khoản
             </h2>
-            <p className="text-[11px] sm:text-xs text-slate-500 mt-0.5">
-              Cập nhật liên tục, hỗ trợ bàn giao và trải nghiệm nhanh 24/7
-            </p>
           </div>
 
           <Link
             href={productsUrl}
-            className="text-xs sm:text-sm font-semibold text-blue-600 hover:text-blue-700 flex items-center gap-0.5 group shrink-0"
+            className="inline-flex items-center gap-1 text-xs sm:text-sm font-semibold text-slate-600 hover:text-red-600 transition-colors group shrink-0"
           >
             <span>Xem tất cả</span>
             <ChevronRight className="w-3.5 h-3.5 group-hover:translate-x-0.5 transition-transform" />
@@ -264,7 +261,7 @@ export default function HomeProductList({
         </div>
 
         {/* Tab Thể Loại: TỰ ĐỘNG XUỐNG HÀNG TRÊN MOBILE, KHÔNG CẦN SCROLL NGANG */}
-        <div className="relative z-20 grid grid-cols-2 sm:grid-cols-5 gap-2 mb-3 sm:mb-5">
+        <div className="relative z-20 grid grid-cols-2 sm:grid-cols-5 gap-2 sm:gap-2.5 mb-4 sm:mb-6">
           {[
             { id: "all", label: "Tất Cả", count: counts.all, color: "bg-slate-900" },
             { id: "white", label: "Acc Reg Trắng TT", count: counts.white, color: "bg-emerald-600" },

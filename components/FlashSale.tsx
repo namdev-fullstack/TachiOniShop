@@ -15,9 +15,6 @@ import {
   Clock,
   Sparkles,
   ZoomIn,
-  MessageCircle,
-  Phone,
-  ShieldCheck,
 } from "lucide-react";
 import ImagePreviewModal from "./ImagePreviewModal";
 
@@ -176,124 +173,78 @@ export default function FlashSale() {
   };
 
   return (
-    <section className="w-full pt-6 sm:pt-8 md:pt-10 pb-3 sm:pb-5">
-      <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 space-y-4 sm:space-y-6">
-        
-        {/* Box Thông Báo Hỗ Trợ Dịch Vụ Nằm Trên Flash Sale */}
-        <div className="rounded-2xl border border-slate-200/90 bg-white p-3.5 sm:p-5 shadow-xs">
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-4 text-xs sm:text-sm text-slate-700">
-            <div className="space-y-1">
-              <div className="flex items-center gap-2 font-bold text-slate-900 text-sm sm:text-base">
-                <span className="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse" />
-                <span>Trung Tâm Hỗ Trợ Dịch Vụ & Thuê Acc Trực Tiếp</span>
-              </div>
-              <p className="text-slate-600 text-[11px] sm:text-xs">
-                Toàn bộ tài khoản cung cấp đều được kiểm định an toàn, hỗ trợ đổi mật khẩu và bảo mật chu đáo.
-              </p>
-            </div>
+    <section className="w-full py-4 sm:py-8 md:py-10">
+      <div className="max-w-7xl mx-auto px-2.5 sm:px-6 lg:px-8 space-y-3 sm:space-y-5">
 
-            <div className="flex items-center gap-2 sm:gap-3 flex-wrap">
-              <a
-                href="https://zalo.me/0966216495"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-blue-50 hover:bg-blue-100 text-blue-700 font-semibold text-xs border border-blue-200 transition-colors"
-              >
-                <MessageCircle className="w-3.5 h-3.5" />
-                <span>Zalo Hỗ Trợ</span>
-              </a>
-
-              <a
-                href="tel:0966216495"
-                className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-emerald-50 hover:bg-emerald-100 text-emerald-700 font-semibold text-xs border border-emerald-200 transition-colors"
-              >
-                <Phone className="w-3.5 h-3.5" />
-                <span>0966.216.495</span>
-              </a>
-
-              <Link
-                href="/contact"
-                className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-red-600 hover:bg-red-700 text-white font-semibold text-xs transition-colors shadow-xs"
-              >
-                <ShieldCheck className="w-3.5 h-3.5" />
-                <span>Liên Hệ Thuê Ngay</span>
-              </Link>
-            </div>
-          </div>
-        </div>
-
-        {/* CONTAINER FLASH SALE DẠNG STRIP SANG TRỌNG */}
-        <div className="rounded-2xl sm:rounded-3xl border border-red-200/90 bg-gradient-to-b from-rose-50/70 via-white to-white shadow-xs overflow-hidden p-3 sm:p-5">
+        {/* CONTAINER FLASH SALE DẠNG STRIP SANG TRỌNG VỚI NỀN CHUYỂN ĐỘNG NHẸ NHÀNG */}
+        <div className="rounded-2xl sm:rounded-3xl border border-red-200/90 bg-animated-flashsale shadow-2xs overflow-hidden p-3 sm:p-5 md:p-6">
           
           {/* HEADER: Tiêu đề + Countdown + Mũi tên Scroll */}
-          <div className="flex flex-col md:flex-row md:items-center justify-between gap-3 pb-3 border-b border-rose-100">
+          <div className="flex items-center justify-between gap-2 pb-3 sm:pb-4 border-b border-rose-100">
             
             {/* Vế trái: Logo Flash Sale + Hôm Nay */}
-            <div className="flex items-center gap-2.5 sm:gap-3 flex-wrap">
+            <div className="flex items-center gap-2 sm:gap-3">
               {/* Badge Flash Sale */}
-              <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-gradient-to-r from-red-600 via-rose-600 to-amber-500 text-white font-black text-xs sm:text-sm uppercase tracking-wider shadow-sm shadow-red-500/20">
-                <Zap className="w-4 h-4 fill-amber-300 text-amber-300 animate-bounce" />
+              <div className="flex items-center gap-1 sm:gap-1.5 px-2.5 sm:px-3 py-1 sm:py-1.5 rounded-lg sm:rounded-xl bg-gradient-to-r from-red-600 via-rose-600 to-amber-500 text-white font-black text-xs sm:text-sm uppercase tracking-wider shadow-sm shadow-red-500/20">
+                <Zap className="w-3.5 h-3.5 fill-amber-300 text-amber-300 animate-bounce shrink-0" />
                 <span>FLASH SALE</span>
               </div>
 
               {/* Tag Hôm Nay */}
-              <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-xl bg-rose-100 text-red-700 font-extrabold text-xs sm:text-sm border border-rose-200 shadow-2xs">
-                <Sparkles className="w-3.5 h-3.5 text-red-600 animate-pulse" />
+              <span className="inline-flex items-center gap-1 px-2 py-0.5 sm:px-2.5 sm:py-1 rounded-lg sm:rounded-xl bg-rose-100 text-red-700 font-extrabold text-[11px] sm:text-sm border border-rose-200 shadow-2xs">
+                <Sparkles className="w-3 h-3 text-red-600 animate-pulse shrink-0" />
                 <span>Hôm Nay</span>
               </span>
             </div>
 
             {/* Vế phải: Nút cuộn trái/phải */}
-            <div className="flex items-center justify-between md:justify-end gap-3">
+            <div className="flex items-center gap-2">
               <span className="text-[11px] sm:text-xs text-slate-500 font-medium hidden sm:inline-flex items-center gap-1">
                 <Clock className="w-3.5 h-3.5 text-rose-500" />
                 Ưu đãi giá tốt trong ngày
               </span>
 
               {/* Nút lùi/tiến desktop & tablet */}
-              <div className="flex items-center gap-1.5 ml-auto sm:ml-0">
+              <div className="flex items-center gap-1">
                 <button
                   type="button"
                   aria-label="Xem sản phẩm trước"
                   onClick={() => scroll("left")}
-                  className="w-8 h-8 rounded-full border border-slate-200 bg-white hover:bg-slate-100 hover:border-slate-300 active:scale-95 text-slate-700 flex items-center justify-center transition-all cursor-pointer shadow-2xs"
+                  className="w-7 h-7 sm:w-8 sm:h-8 rounded-full border border-slate-200 bg-white hover:bg-slate-100 hover:border-slate-300 active:scale-95 text-slate-700 flex items-center justify-center transition-all cursor-pointer shadow-2xs"
                 >
-                  <ChevronLeft className="w-4 h-4" />
+                  <ChevronLeft className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
                 </button>
                 <button
                   type="button"
                   aria-label="Xem sản phẩm kế tiếp"
                   onClick={() => scroll("right")}
-                  className="w-8 h-8 rounded-full border border-slate-200 bg-white hover:bg-slate-100 hover:border-slate-300 active:scale-95 text-slate-700 flex items-center justify-center transition-all cursor-pointer shadow-2xs"
+                  className="w-7 h-7 sm:w-8 sm:h-8 rounded-full border border-slate-200 bg-white hover:bg-slate-100 hover:border-slate-300 active:scale-95 text-slate-700 flex items-center justify-center transition-all cursor-pointer shadow-2xs"
                 >
-                  <ChevronRight className="w-4 h-4" />
+                  <ChevronRight className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
                 </button>
               </div>
             </div>
 
           </div>
 
-          {/* CAROUSEL / HORIZONTAL SCROLL CARDS */}
+          {/* CAROUSEL / HORIZONTAL SCROLL CARDS: Tối ưu cuộn mượt không bị khựng scroll trang trên mobile */}
           <div
             ref={scrollContainerRef}
-            className="flex gap-2.5 sm:gap-3.5 overflow-x-auto no-scrollbar scroll-smooth pt-3 pb-1 -mx-1 px-1 touch-pan-x"
+            className="flex gap-2 sm:gap-3.5 overflow-x-auto no-scrollbar scroll-smooth pt-2.5 sm:pt-3.5 pb-1 -mx-2.5 px-2.5 sm:mx-0 sm:px-0 overscroll-x-contain snap-x snap-mandatory"
             style={{
               scrollbarWidth: "none",
               msOverflowStyle: "none",
+              WebkitOverflowScrolling: "touch",
             }}
           >
             {items.map((acc) => {
               const imgSrc =
                 acc.images && acc.images.length > 0 ? acc.images[0] : "/acc.jpg";
-              const percentSold = Math.min(
-                100,
-                Math.round((acc.soldCount / acc.totalStock) * 100)
-              );
 
               return (
                 <div
                   key={acc.id}
-                  className="w-[165px] sm:w-[210px] md:w-[230px] shrink-0 rounded-xl sm:rounded-2xl border border-slate-200 bg-white hover:border-red-300 hover:shadow-md transition-all duration-300 flex flex-col justify-between overflow-hidden group"
+                  className="w-[calc(50%-4px)] sm:w-[215px] md:w-[235px] shrink-0 snap-start rounded-xl sm:rounded-2xl border border-slate-200 bg-white hover:border-red-300 hover:shadow-md transition-all duration-300 flex flex-col justify-between overflow-hidden group"
                 >
                   <div>
                     {/* Thumbnail + Badges */}
@@ -308,7 +259,7 @@ export default function FlashSale() {
                         src={imgSrc}
                         alt={acc.title}
                         fill
-                        sizes="(max-width: 640px) 165px, 230px"
+                        sizes="(max-width: 640px) 50vw, 235px"
                         className="object-cover group-hover:scale-105 transition-transform duration-500"
                       />
 
@@ -345,7 +296,7 @@ export default function FlashSale() {
                       </h3>
 
                       {/* Giá sale & giá fake */}
-                      <div className="space-y-0.5 pt-0.5 pb-1">
+                      <div className="space-y-0.5 pt-0.5 pb-0.5">
                         <div className="flex items-baseline gap-1.5 flex-wrap">
                           <span className="text-xs sm:text-base font-extrabold text-red-600">
                             {formatPrice(acc.price)}

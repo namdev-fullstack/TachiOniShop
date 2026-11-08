@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import HomeBanner from "@/components/HomeBanner";
 import FlashSale from "@/components/FlashSale";
 import HomeCategories from "@/components/HomeCategories";
 import HomeProductList from "@/components/HomeProductList";
@@ -11,7 +12,10 @@ export default function Home() {
   return (
     <main className="min-h-screen bg-white text-slate-900 selection:bg-red-100 selection:text-red-900 overflow-x-hidden">
       
-      {/* 1. Flash Sale chuẩn phong cách shopacclq.shop - Giờ vàng giá sốc + Countdown */}
+      {/* 1. Banner dưới menu */}
+      <HomeBanner />
+
+      {/* 2. Flash Sale chuẩn phong cách shopacclq.shop - Giờ vàng giá sốc + Countdown */}
       <FlashSale />
 
       {/* 2. Thể loại rút gọn: Acc Reg Trắng TT, Acc LQ <1M, 1M-3M, 3M+ */}

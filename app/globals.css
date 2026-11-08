@@ -400,4 +400,45 @@ a:focus-visible {
   animation: shine-sweep 0.75s cubic-bezier(0.2, 0.8, 0.2, 1) 1 forwards;
 }
 
+/* Gradient nền chuyển động nhẹ nhàng, pastel sang trọng */
+@keyframes softGradient {
+  0% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+  100% {
+    background-position: 0% 50%;
+  }
+}
+
+.bg-animated-soft {
+  background: linear-gradient(120deg, #fff1f2, #fef3c7, #ede9fe, #e0f2fe, #f0fdf4, #fff1f2);
+  background-size: 300% 300%;
+  animation: softGradient 12s ease infinite;
+}
+
+.bg-animated-flashsale {
+  background: linear-gradient(135deg, #fff1f2, #fff7ed, #fdf2f8, #fef2f2, #fff7ed, #fff1f2);
+  background-size: 250% 250%;
+  animation: softGradient 14s ease infinite;
+}
+
+@keyframes marquee-slow {
+  0% { transform: translateX(0%); }
+  100% { transform: translateX(-50%); }
+}
+
+.animate-marquee-slow {
+  display: flex;
+  width: max-content;
+  animation: marquee-slow 40s linear infinite;
+}
+
+.animate-marquee-slow:hover {
+  animation-play-state: paused;
+}
+
+
 
