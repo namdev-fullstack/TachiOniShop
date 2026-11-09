@@ -161,16 +161,71 @@ export default function FlashSale() {
     fetchFlashSales();
   }, []);
 
-  // Điều khiển cuộn ngang mượt mà
+  // Điều khiển cuộn ngang nhảy từng 1 item mượt mà
   const scroll = (direction: "left" | "right") => {
     if (!scrollContainerRef.current) return;
     const container = scrollContainerRef.current;
-    const cardWidth = container.firstElementChild
-      ? (container.firstElementChild as HTMLElement).offsetWidth + 12
-      : 240;
-    const delta = direction === "left" ? -(cardWidth * 2) : cardWidth * 2;
+    const first = container.children[0] as HTMLElement | undefined;
+    const second = container.children[1] as HTMLElement | undefined;
+    if (!first) return;
+
+    const itemStep = second ? second.offsetLeft - first.offsetLeft : first.offsetWidth + 12;
+    const delta = direction === "left" ? -itemStep : itemStep;
     container.scrollBy({ left: delta, behavior: "smooth" });
   };
+
+  // Tự động scroll nhảy từng item 1, mượt mà nhẹ nhàng
+  useEffect(() => {
+    const container = scrollContainerRef.current;
+    if (!container || items.length === 0) return;
+
+    let isPaused = false;
+
+    const pause = () => {
+      isPaused = true;
+    };
+    const resume = () => {
+      isPaused = false;
+    };
+
+    const handleTouchEnd = () => {
+      // Đợi 2.5s sau khi thả tay vuốt thì mới tiếp tục tự động cuộn
+      setTimeout(() => {
+        isPaused = false;
+      }, 2500);
+    };
+
+    container.addEventListener("mouseenter", pause);
+    container.addEventListener("mouseleave", resume);
+    container.addEventListener("touchstart", pause, { passive: true });
+    container.addEventListener("touchend", handleTouchEnd, { passive: true });
+
+    const interval = setInterval(() => {
+      if (isPaused || !scrollContainerRef.current) return;
+      const el = scrollContainerRef.current;
+      const first = el.children[0] as HTMLElement | undefined;
+      const second = el.children[1] as HTMLElement | undefined;
+      if (!first) return;
+
+      const itemStep = second ? second.offsetLeft - first.offsetLeft : first.offsetWidth + 12;
+      const maxScrollLeft = el.scrollWidth - el.clientWidth;
+
+      // Nếu đã cuộn gần hết (trong khoảng nửa card), cuộn quay lại đầu mượt mà
+      if (el.scrollLeft >= maxScrollLeft - 10) {
+        el.scrollTo({ left: 0, behavior: "smooth" });
+      } else {
+        el.scrollBy({ left: itemStep, behavior: "smooth" });
+      }
+    }, 3200); // Khoảng thời gian 3.2 giây nhảy 1 item êm ái
+
+    return () => {
+      clearInterval(interval);
+      container.removeEventListener("mouseenter", pause);
+      container.removeEventListener("mouseleave", resume);
+      container.removeEventListener("touchstart", pause);
+      container.removeEventListener("touchend", handleTouchEnd);
+    };
+  }, [items]);
 
   return (
     <section className="w-full py-4 sm:py-8 md:py-10">
@@ -329,7 +384,7 @@ export default function FlashSale() {
                     </div>
                   </div>
 
-                  {/* Nút hành động Thuê ngay */}
+                  {/* Nút hành động Trải Nghiệm Ngay */}
                   <div className="p-2 sm:p-3 pt-0">
                     <button
                       type="button"
@@ -339,7 +394,7 @@ export default function FlashSale() {
                       className="w-full py-1.5 sm:py-2 rounded-xl text-white font-bold text-[11px] sm:text-xs uppercase tracking-wider flex items-center justify-center gap-1 bg-blue-600 hover:bg-blue-700 active:scale-95 shadow-xs hover:shadow transition-all cursor-pointer"
                     >
                       <Zap className="w-3 h-3 fill-amber-300 text-amber-300 drop-shadow-xs" />
-                      <span>Thuê Ngay</span>
+                      <span>Trải Nghiệm Ngay</span>
                     </button>
                   </div>
 

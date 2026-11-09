@@ -24,7 +24,7 @@ export default function Home() {
         onSelectCategory={setActiveCategory}
       />
 
-      {/* 3. Danh sách tài khoản: Item tối giản, click ảnh xem full chiều cao, nút Thuê ngay -> /contact */}
+      {/* 3. Danh sách tài khoản: Item tối giản, click ảnh xem full chiều cao, nút Trải nghiệm ngay -> /contact */}
       <HomeProductList
         activeCategory={activeCategory}
         onSelectCategory={setActiveCategory}

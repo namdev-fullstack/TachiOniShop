@@ -111,18 +111,18 @@ export default function AccountCard({ item, onPreviewImage }: AccountCardProps) 
         </div>
       </div>
 
-      {/* Nút Thuê Ngay -> Màu xanh dương hiện đại, sáng sủa và dễ chịu */}
-      <div className="p-2.5 sm:p-3.5 pt-0 mt-auto">
+      {/* Nút Trải Nghiệm Ngay -> Kích thước gọn gàng, thanh thoát */}
+      <div className="p-2 sm:p-3 pt-0 mt-auto">
         <button
           type="button"
           onClick={(e) => {
             e.stopPropagation();
             router.push(`/contact?acc=${encodeURIComponent(item.code || "")}`);
           }}
-          className="w-full inline-flex items-center justify-center gap-1.5 rounded-xl px-3 py-2 sm:py-2.5 text-xs sm:text-sm font-bold text-white uppercase tracking-wider bg-blue-600 hover:bg-blue-700 active:scale-95 shadow-xs hover:shadow transition-all cursor-pointer"
+          className="w-full inline-flex items-center justify-center gap-1 rounded-xl px-2.5 py-1.5 sm:py-2 text-[11px] sm:text-xs font-bold text-white uppercase tracking-wider bg-blue-600 hover:bg-blue-700 active:scale-95 shadow-xs hover:shadow transition-all cursor-pointer"
         >
-          <Zap className="w-3.5 h-3.5 fill-amber-300 text-amber-300 drop-shadow-xs" />
-          <span>Thuê Ngay</span>
+          <Zap className="w-3 h-3 fill-amber-300 text-amber-300 drop-shadow-xs" />
+          <span>Trải Nghiệm Ngay</span>
         </button>
       </div>
     </motion.article>
