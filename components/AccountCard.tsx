@@ -52,7 +52,7 @@ export default function AccountCard({ item, onPreviewImage }: AccountCardProps) 
       className="card-3d group relative flex flex-col justify-between overflow-hidden rounded-xl sm:rounded-2xl h-full"
     >
       <div>
-        {/* Ảnh tài khoản: Click vào mở modal xem ảnh gần full chiều cao, không co giãn */}
+        {/* Ảnh tài khoản: Click vào mở modal xem ảnh */}
         <div
           onClick={(e) => {
             e.stopPropagation();
@@ -84,18 +84,23 @@ export default function AccountCard({ item, onPreviewImage }: AccountCardProps) 
           </button>
         </div>
 
-        {/* Thông tin rút gọn: Tiêu đề, Người đang xem, Giá thật & Giá fake */}
+        {/* Thông tin: Mã #id, Title, Người đang xem, Giá thật & Giá fake */}
         <div className="p-2.5 sm:p-3.5 space-y-1.5 sm:space-y-2">
-          {/* Tên / Mã tài khoản */}
-          <h3 className="text-xs sm:text-sm font-bold text-slate-800 line-clamp-1 group-hover:text-red-600 transition-colors drop-shadow-xs">
+          {/* Row #id của acc & Số người đang xem */}
+          <div className="flex items-center justify-between gap-1 flex-wrap">
+            <span className="inline-flex items-center text-[11px] sm:text-xs font-black font-mono text-red-600 bg-red-50 border border-red-200/80 px-1.5 py-0.5 rounded shadow-2xs">
+              #{item.code}
+            </span>
+            <div className="inline-flex items-center gap-1 text-[10px] sm:text-xs text-amber-700 bg-amber-50/90 border border-amber-200/80 px-1.5 py-0.5 rounded-md font-semibold shadow-2xs">
+              <Flame className="w-3 h-3 text-red-500 fill-red-500 animate-pulse shrink-0" />
+              <span>{viewers} người xem</span>
+            </div>
+          </div>
+
+          {/* Title của acc */}
+          <h3 className="text-xs sm:text-sm font-bold text-slate-800 line-clamp-2 group-hover:text-red-600 transition-colors drop-shadow-xs leading-snug">
             {displayTitle}
           </h3>
-
-          {/* Người đang xem dạng pill 3D */}
-          <div className="inline-flex items-center gap-1 text-[10px] sm:text-xs text-amber-700 bg-amber-50/90 border border-amber-200/80 px-2 py-0.5 rounded-md font-semibold shadow-2xs">
-            <Flame className="w-3 h-3 text-red-500 fill-red-500 animate-pulse shrink-0" />
-            <span>{viewers} người đang xem</span>
-          </div>
 
           {/* Giá tiền 3D nổi bật & Giá fake */}
           <div className="flex items-baseline gap-1.5 flex-wrap pt-0.5">
@@ -111,7 +116,7 @@ export default function AccountCard({ item, onPreviewImage }: AccountCardProps) 
         </div>
       </div>
 
-      {/* Nút Trải Nghiệm Ngay -> Kích thước gọn gàng, thanh thoát */}
+      {/* Nút Trải Nghiệm Ngay */}
       <div className="p-2 sm:p-3 pt-0 mt-auto">
         <button
           type="button"

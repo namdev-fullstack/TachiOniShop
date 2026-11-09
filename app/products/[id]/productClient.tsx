@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState, useRef } from "react";
 import { useSearchParams } from "next/navigation";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -12,7 +12,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Search, ChevronLeft, ChevronRight, TriangleAlert, ArrowUpDown } from "lucide-react";
+import { Search, ChevronLeft, ChevronRight, TriangleAlert, ArrowUpDown, X } from "lucide-react";
 
 // Firebase
 import { db } from "@/lib/firebaseConfig";
@@ -21,6 +21,7 @@ import { collection, getDocs } from "firebase/firestore";
 // Shared components
 import AccountCard from "@/components/AccountCard";
 import ImagePreviewModal from "@/components/ImagePreviewModal";
+import { matchAccountFuzzy } from "@/lib/searchUtils";
 import { motion, AnimatePresence } from "framer-motion";
 
 // ==========================================
@@ -38,6 +39,7 @@ type SortKey = "newest" | "price_asc" | "price_desc";
 type Account = {
   id: string;
   code: string;
+  title: string;
   rank: string;
   heroes_count: number;
   skins_count: number;
@@ -88,6 +90,17 @@ export default function ProductsPage() {
   // FILTER & SORT
   // ========================================
   const [search, setSearch] = useState("");
+  const textMeasureRef = useRef<HTMLSpanElement>(null);
+  const inputRef = useRef<HTMLInputElement>(null);
+  const [textWidth, setTextWidth] = useState(0);
+
+  // Đo chiều dài text để đặt nút X ngay cạnh từ vừa gõ
+  useEffect(() => {
+    if (textMeasureRef.current) {
+      setTextWidth(textMeasureRef.current.offsetWidth);
+    }
+  }, [search]);
+
   const [selectedCategory, setSelectedCategory] = useState<CategoryKey>(
     (catQuery as CategoryKey) || "all"
   );
@@ -127,15 +140,19 @@ export default function ProductsPage() {
             const catId = (d.category_id || d.category?.id || "").toLowerCase().trim();
             const catName = (d.category?.name || d.categories?.name || "").toLowerCase().trim();
 
+            const cleanCode = (d.code || `${100 + idx}`).toString();
+            const title = d.title || d.highlight || `Acc #${cleanCode}`;
+
             return {
               id: doc.id,
-              code: d.code || `ACC-${100 + idx}`,
+              code: cleanCode,
+              title,
               rank: d.rank || "Trong Ảnh",
               heroes_count: d.heroes_count || 0,
               skins_count: d.skins_count || 0,
               price,
               fake_price: fakePrice,
-              highlight: d.highlight || `Acc #${d.code || 100 + idx}`,
+              highlight: d.highlight || title,
               is_sale: d.is_sale ?? true,
               images: d.images?.length > 0 ? d.images : ["/acc.jpg"],
               created_at: d.created_at?.toDate?.() || new Date(),
@@ -179,8 +196,10 @@ export default function ProductsPage() {
     let result = data.filter((acc) => {
       const matchSearch =
         !search.trim() ||
-        acc.code?.toLowerCase().includes(search.toLowerCase().trim()) ||
-        acc.highlight?.toLowerCase().includes(search.toLowerCase().trim());
+        matchAccountFuzzy(
+          { code: acc.code, title: acc.title, highlight: acc.highlight },
+          search
+        );
 
       const matchCategory =
         selectedCategory === "all" || acc.categoryType === selectedCategory;
@@ -320,13 +339,41 @@ export default function ProductsPage() {
         <div className="flex flex-col sm:flex-row gap-2.5 sm:items-center">
           {/* Search */}
           <div className="relative flex-1">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 pointer-events-none z-10" />
+
+            {/* Hidden span để đo chính xác chiều rộng text theo font chữ */}
+            <span
+              ref={textMeasureRef}
+              aria-hidden="true"
+              className="absolute invisible pointer-events-none whitespace-pre text-xs sm:text-sm font-normal -z-50 select-none"
+            >
+              {search}
+            </span>
+
             <Input
-              placeholder="Tìm theo mã acc hoặc mô tả..."
+              ref={inputRef}
+              placeholder="Tìm theo #mã số hoặc tên acc (vd: #10245, nak, flo, tulen...)..."
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              className="pl-9 rounded-xl border-slate-200 text-xs sm:text-sm h-10"
+              className="pl-9 pr-10 rounded-xl border-slate-200 text-xs sm:text-sm h-10 shadow-2xs"
             />
+
+            {search && (
+              <button
+                type="button"
+                onClick={() => {
+                  setSearch("");
+                  inputRef.current?.focus();
+                }}
+                style={{
+                  left: `min(calc(36px + ${textWidth}px + 6px), calc(100% - 28px))`,
+                }}
+                className="absolute top-1/2 -translate-y-1/2 w-5 h-5 rounded-full bg-slate-200/90 hover:bg-slate-300 active:scale-90 text-slate-600 hover:text-slate-900 flex items-center justify-center transition-all cursor-pointer z-10 shadow-2xs"
+                title="Xóa tìm kiếm"
+              >
+                <X className="w-3 h-3 stroke-[2.5]" />
+              </button>
+            )}
           </div>
 
           {/* Sort */}
@@ -382,7 +429,7 @@ export default function ProductsPage() {
                   item={{
                     id: item.id,
                     code: item.code,
-                    title: item.highlight || `Acc #${item.code}`,
+                    title: item.title || item.highlight || `Acc #${item.code}`,
                     price: item.price,
                     fake_price: item.fake_price,
                     images: item.images,

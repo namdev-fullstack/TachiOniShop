@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { db } from "@/lib/firebaseConfig";
 import { collection, getDocs, doc, updateDoc } from "firebase/firestore";
 import { toast } from "sonner";
@@ -10,14 +10,18 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 
-import { Plus, Pencil, DollarSign, Tag, Image as ImageIcon, Search, ChevronLeft, ChevronRight, ZoomIn } from "lucide-react";
+import { Plus, Pencil, DollarSign, Tag, Image as ImageIcon, Search, ChevronLeft, ChevronRight, ZoomIn, X } from "lucide-react";
 import Link from "next/link";
+import { matchAccountFuzzy } from "@/lib/searchUtils";
 import ImageLightbox, { useImageLightbox } from "@/components/ImageLightbox";
 import AdminAuthWrapper from "@/components/AdminAuthWrapper";
 
 type Product = {
   id: string;
   code: string;
+  title?: string;
+  highlight?: string;
+  is_white?: boolean;
   rank: string;
   price: number;
   fake_price: number;
@@ -48,6 +52,15 @@ export default function AdminProductsPage() {
   const [filteredProducts, setFilteredProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
+  const textMeasureRef = useRef<HTMLSpanElement>(null);
+  const inputRef = useRef<HTMLInputElement>(null);
+  const [textWidth, setTextWidth] = useState(0);
+
+  useEffect(() => {
+    if (textMeasureRef.current) {
+      setTextWidth(textMeasureRef.current.offsetWidth);
+    }
+  }, [searchTerm]);
   const [currentPage, setCurrentPage] = useState(1);
 
   // Lightbox hook
@@ -77,13 +90,16 @@ export default function AdminProductsPage() {
     fetchProducts();
   }, []);
 
-  // Filter products by search term
+  // Filter products by search term (id & title)
   useEffect(() => {
     if (searchTerm.trim() === "") {
       setFilteredProducts(products);
     } else {
       const filtered = products.filter((product) =>
-        product.code.toLowerCase().includes(searchTerm.toLowerCase())
+        matchAccountFuzzy(
+          { code: product.code, title: product.title, highlight: product.highlight },
+          searchTerm
+        )
       );
       setFilteredProducts(filtered);
     }
@@ -156,14 +172,42 @@ export default function AdminProductsPage() {
         <CardContent className="p-6">
           {/* Search */}
           <div className="mb-6">
-            <div className="relative">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 w-5 h-5" />
+            <div className="relative max-w-md">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 w-4 h-4 pointer-events-none z-10" />
+
+              {/* Hidden span để đo độ dài text */}
+              <span
+                ref={textMeasureRef}
+                aria-hidden="true"
+                className="absolute invisible pointer-events-none whitespace-pre text-sm font-normal -z-50 select-none"
+              >
+                {searchTerm}
+              </span>
+
               <Input
-                placeholder="Tìm kiếm theo mã code..."
+                ref={inputRef}
+                placeholder="Tìm theo #mã code hoặc title acc..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="pl-10"
+                className="pl-9 pr-10"
               />
+
+              {searchTerm && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    setSearchTerm("");
+                    inputRef.current?.focus();
+                  }}
+                  style={{
+                    left: `min(calc(36px + ${textWidth}px + 6px), calc(100% - 28px))`,
+                  }}
+                  className="absolute top-1/2 -translate-y-1/2 w-5 h-5 rounded-full bg-slate-200/90 hover:bg-slate-300 active:scale-90 text-slate-600 hover:text-slate-900 flex items-center justify-center transition-all cursor-pointer z-10"
+                  title="Xóa tìm kiếm"
+                >
+                  <X className="w-3 h-3 stroke-[2.5]" />
+                </button>
+              )}
             </div>
           </div>
 
@@ -174,6 +218,7 @@ export default function AdminProductsPage() {
                 <TableRow className="bg-slate-50 hover:bg-slate-50">
                   <TableHead className="font-semibold">Mã code</TableHead>
                   <TableHead className="font-semibold">Ảnh</TableHead>
+                  <TableHead className="font-semibold">Title (Tiêu đề)</TableHead>
                   <TableHead className="font-semibold">Giá thật</TableHead>
                   <TableHead className="font-semibold">Giá fake</TableHead>
                   <TableHead className="font-semibold">Trạng thái</TableHead>
@@ -183,7 +228,7 @@ export default function AdminProductsPage() {
               <TableBody>
                 {currentProducts.length === 0 ? (
                   <TableRow>
-                    <TableCell colSpan={6} className="text-center py-12 text-gray-500">
+                    <TableCell colSpan={7} className="text-center py-12 text-gray-500">
                       {searchTerm ? "Không tìm thấy sản phẩm nào" : "Chưa có sản phẩm nào"}
                     </TableCell>
                   </TableRow>
@@ -192,8 +237,8 @@ export default function AdminProductsPage() {
                     const currentStatus = getProductStatus(product);
                     return (
                       <TableRow key={product.id} className="hover:bg-slate-50 transition-colors">
-                        <TableCell className="font-mono text-sm font-medium text-indigo-600">
-                          {product.code}
+                        <TableCell className="font-mono text-sm font-bold text-indigo-600">
+                          #{product.code}
                         </TableCell>
                         <TableCell>
                           {product.images && product.images.length > 0 ? (
@@ -215,6 +260,11 @@ export default function AdminProductsPage() {
                               <ImageIcon className="w-5 h-5 text-gray-400" />
                             </div>
                           )}
+                        </TableCell>
+                        <TableCell className="max-w-[220px]">
+                          <div className="text-xs font-bold text-slate-800 line-clamp-2">
+                            {product.title || product.highlight || `Acc #${product.code}`}
+                          </div>
                         </TableCell>
                         <TableCell>
                           <div className="flex items-center gap-1 text-green-600 font-semibold">

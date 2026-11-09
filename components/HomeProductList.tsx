@@ -182,7 +182,7 @@ export default function HomeProductList({
               categoryType = "lq_over3m";
             }
             const fakePrice = Number(d.fake_price) || Math.round(price * 1.7);
-            const title = d.highlight || d.code || `Acc #${d.code || 100 + idx}`;
+            const title = d.title || d.highlight || `Acc #${d.code || 100 + idx}`;
             const images = d.images && d.images.length > 0 ? d.images : ["/acc.jpg"];
             const viewers = 8 + ((idx * 7) % 21);
 
