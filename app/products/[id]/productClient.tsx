@@ -53,6 +53,7 @@ type Account = {
   categories: Category | null;
   status?: "sold" | "installment" | "unsold" | "hidden";
   is_active: boolean;
+  is_white?: boolean;
   viewers?: number;
   categoryType: "white" | "lq_under1m" | "lq_1m_3m" | "lq_over3m";
 };
@@ -143,6 +144,13 @@ export default function ProductsPage() {
             const cleanCode = (d.code || `${100 + idx}`).toString();
             const title = d.title || d.highlight || `Acc #${cleanCode}`;
 
+            const catType = resolveCategoryType(catId, catName, price);
+            const isWhite = Boolean(
+              d.is_white !== undefined
+                ? d.is_white
+                : catType === "white" || catName.includes("trắng")
+            );
+
             return {
               id: doc.id,
               code: cleanCode,
@@ -154,6 +162,7 @@ export default function ProductsPage() {
               fake_price: fakePrice,
               highlight: d.highlight || title,
               is_sale: d.is_sale ?? true,
+              is_white: isWhite,
               images: d.images?.length > 0 ? d.images : ["/acc.jpg"],
               created_at: d.created_at?.toDate?.() || new Date(),
               category_id: catId,
@@ -161,7 +170,7 @@ export default function ProductsPage() {
               status: d.status || "unsold",
               is_active: d.is_active ?? true,
               viewers,
-              categoryType: resolveCategoryType(catId, catName, price),
+              categoryType: catType,
             };
           })
           .filter((acc) => acc.status !== "sold" && acc.is_active !== false);
@@ -434,6 +443,7 @@ export default function ProductsPage() {
                     fake_price: item.fake_price,
                     images: item.images,
                     viewers: item.viewers,
+                    is_white: item.is_white,
                   }}
                   onPreviewImage={(url) => setPreviewImage(url)}
                 />

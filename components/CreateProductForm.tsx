@@ -7,7 +7,8 @@ import { generateCode } from "@/lib/utils";
 import { toast } from "sonner";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { RefreshCw, ShieldCheck, Flame } from "lucide-react";
+import { RefreshCw, ShieldCheck, Flame, ZoomIn } from "lucide-react";
+import ImageLightbox, { useImageLightbox } from "@/components/ImageLightbox";
 
 const CLOUD_NAME = process.env.NEXT_PUBLIC_CLOUD_NAME!;
 const UPLOAD_PRESET = process.env.NEXT_PUBLIC_UPLOAD_PRESET!;
@@ -65,7 +66,7 @@ export default function CreateProductForm() {
     rank: "Trong Ảnh",
     price: "",
     fake_price: "",
-    is_white: true,
+    is_white: false,
     is_sale: false,
     highlight: "",
     status: "unsold" as "sold" | "installment" | "unsold" | "hidden",
@@ -74,6 +75,7 @@ export default function CreateProductForm() {
   const [files, setFiles] = useState<File[]>([]);
   const [preview, setPreview] = useState<string[]>([]);
   const [loading, setLoading] = useState(false);
+  const { isOpen, images: lightboxImages, currentIndex, openLightbox, closeLightbox } = useImageLightbox();
 
   const handleRerollCode = () => {
     setForm((prev) => ({ ...prev, code: generateCode() }));
@@ -161,7 +163,7 @@ export default function CreateProductForm() {
         rank: "Trong Ảnh",
         price: "",
         fake_price: "",
-        is_white: true,
+        is_white: false,
         is_sale: false,
         highlight: "",
         status: "unsold",
@@ -371,17 +373,45 @@ export default function CreateProductForm() {
 
       {/* Preview ảnh */}
       {preview.length > 0 && (
-        <div className="flex gap-2 flex-wrap pt-1">
-          {preview.map((img, i) => (
-            <img
-              key={i}
-              src={img}
-              alt="preview"
-              className="w-16 h-16 object-cover rounded-lg border"
-            />
-          ))}
+        <div className="space-y-1.5 pt-1">
+          <div className="flex items-center justify-between">
+            <span className="text-xs text-slate-500 font-medium">
+              Đã chọn {preview.length} ảnh (click để phóng to xem ảnh)
+            </span>
+          </div>
+          <div className="flex gap-2.5 flex-wrap">
+            {preview.map((img, i) => (
+              <div
+                key={i}
+                onClick={() => openLightbox(preview, i)}
+                className="group relative w-20 h-20 sm:w-24 sm:h-24 rounded-xl border border-slate-200 overflow-hidden cursor-zoom-in bg-slate-50 shadow-2xs hover:shadow-md hover:border-red-400 transition-all select-none"
+              >
+                <img
+                  src={img}
+                  alt={`Preview ${i + 1}`}
+                  className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                />
+                <div className="absolute inset-0 bg-black/0 group-hover:bg-black/25 transition-colors flex items-center justify-center">
+                  <div className="w-7 h-7 rounded-full bg-slate-900/80 text-white flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity shadow-sm">
+                    <ZoomIn className="w-3.5 h-3.5" />
+                  </div>
+                </div>
+                <span className="absolute bottom-1 right-1 text-[9px] font-bold bg-black/60 text-white px-1 py-0.5 rounded leading-none">
+                  #{i + 1}
+                </span>
+              </div>
+            ))}
+          </div>
         </div>
       )}
+
+      {/* Lightbox phóng to ảnh preview */}
+      <ImageLightbox
+        images={lightboxImages}
+        open={isOpen}
+        onClose={closeLightbox}
+        initialIndex={currentIndex}
+      />
 
       {/* Submit Button */}
       <button

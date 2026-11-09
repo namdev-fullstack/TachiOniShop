@@ -15,6 +15,7 @@ import {
   Clock,
   Sparkles,
   ZoomIn,
+  ShieldCheck,
 } from "lucide-react";
 import ImagePreviewModal from "./ImagePreviewModal";
 
@@ -29,6 +30,7 @@ export type FlashSaleItem = {
   soldCount: number;
   totalStock: number;
   slotTime?: string;
+  is_white?: boolean;
 };
 
 // Dữ liệu mẫu phong phú theo đúng phong cách shopacclq.shop
@@ -68,6 +70,7 @@ const fallbackFlashSales: FlashSaleItem[] = [
     soldCount: 14,
     totalStock: 15,
     slotTime: "12:00",
+    is_white: true,
   },
   {
     id: "fs-4",
@@ -134,6 +137,12 @@ export default function FlashSale() {
 
             const soldCount = 3 + ((idx * 3) % 8);
             const totalStock = soldCount + 2 + ((idx * 2) % 4);
+            const isWhite = Boolean(
+              d.is_white !== undefined
+                ? d.is_white
+                : (d.category_id || "").toLowerCase().includes("white") ||
+                  (d.category?.name || "").toLowerCase().includes("trắng")
+            );
 
             list.push({
               id: doc.id,
@@ -146,6 +155,7 @@ export default function FlashSale() {
               soldCount,
               totalStock,
               slotTime: "12:00",
+              is_white: isWhite,
             });
           });
 
@@ -336,10 +346,18 @@ export default function FlashSale() {
                       />
 
                       {/* Badge Flash Sale góc trái */}
-                      <span className="absolute top-1.5 left-1.5 inline-flex items-center gap-0.5 text-[9px] sm:text-[10px] font-bold text-white px-1.5 py-0.5 rounded-md bg-gradient-to-r from-red-600 to-rose-600 shadow-xs">
+                      <span className="absolute top-1.5 left-1.5 inline-flex items-center gap-0.5 text-[9px] sm:text-[10px] font-bold text-white px-1.5 py-0.5 rounded-md bg-gradient-to-r from-red-600 to-rose-600 shadow-xs z-10">
                         <Zap className="w-2.5 h-2.5 fill-current" />
                         <span>Flash Sale</span>
                       </span>
+
+                      {/* Badge Trắng TT góc dưới trái ảnh - Sáng sủa, sắc nét */}
+                      {acc.is_white && (
+                        <span className="absolute bottom-1.5 left-1.5 z-10 inline-flex items-center gap-1 px-1.5 py-0.5 rounded-md bg-white border border-emerald-400 text-emerald-700 text-[9px] sm:text-[10px] font-black select-none">
+                          <ShieldCheck className="w-3 h-3 text-emerald-600 shrink-0" />
+                          <span>Trắng TT</span>
+                        </span>
+                      )}
 
                       {/* Badge Giảm % góc phải */}
                       <span className="absolute top-1.5 right-1.5 text-[9px] sm:text-[10px] font-black text-white px-1.5 py-0.5 rounded-md bg-gradient-to-b from-amber-400 to-amber-500 shadow-xs">

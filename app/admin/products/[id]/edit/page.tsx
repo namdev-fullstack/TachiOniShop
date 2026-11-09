@@ -11,9 +11,10 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { ArrowLeft, Save, Upload, RefreshCw, ShieldCheck, Flame } from "lucide-react";
+import { ArrowLeft, Save, Upload, RefreshCw, ShieldCheck, Flame, ZoomIn } from "lucide-react";
 import Link from "next/link";
 import AdminAuthWrapper from "@/components/AdminAuthWrapper";
+import ImageLightbox, { useImageLightbox } from "@/components/ImageLightbox";
 
 const ranks = [
   "Trong Ảnh",
@@ -81,6 +82,7 @@ export default function EditProductPage() {
   const [images, setImages] = useState<string[]>([]);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  const { isOpen, images: lightboxImages, currentIndex, openLightbox, closeLightbox } = useImageLightbox();
 
   // Fetch product data
   useEffect(() => {
@@ -355,21 +357,47 @@ export default function EditProductPage() {
 
                 {/* Images Preview */}
                 <div>
-                  <Label className="text-xs font-semibold text-slate-700">Ảnh hiện tại</Label>
-                  <div className="mt-1 flex gap-2 flex-wrap">
+                  <div className="flex items-center justify-between">
+                    <Label className="text-xs font-semibold text-slate-700">Ảnh hiện tại</Label>
+                    {images.length > 0 && (
+                      <span className="text-[11px] text-slate-400">Click ảnh để phóng to</span>
+                    )}
+                  </div>
+                  <div className="mt-1 flex gap-2.5 flex-wrap">
                     {images.map((img, i) => (
-                      <img
+                      <div
                         key={i}
-                        src={img}
-                        alt={`Ảnh ${i + 1}`}
-                        className="w-16 h-16 object-cover rounded-lg border"
-                      />
+                        onClick={() => openLightbox(images, i)}
+                        className="group relative w-20 h-20 sm:w-24 sm:h-24 rounded-xl border border-slate-200 overflow-hidden cursor-zoom-in bg-slate-50 shadow-2xs hover:shadow-md hover:border-indigo-400 transition-all select-none"
+                      >
+                        <img
+                          src={img}
+                          alt={`Ảnh ${i + 1}`}
+                          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                        />
+                        <div className="absolute inset-0 bg-black/0 group-hover:bg-black/25 transition-colors flex items-center justify-center">
+                          <div className="w-7 h-7 rounded-full bg-slate-900/80 text-white flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity shadow-sm">
+                            <ZoomIn className="w-3.5 h-3.5" />
+                          </div>
+                        </div>
+                        <span className="absolute bottom-1 right-1 text-[9px] font-bold bg-black/60 text-white px-1 py-0.5 rounded leading-none">
+                          #{i + 1}
+                        </span>
+                      </div>
                     ))}
                     {images.length === 0 && (
                       <div className="text-gray-400 text-xs py-2">Chưa có ảnh</div>
                     )}
                   </div>
                 </div>
+
+                {/* Lightbox */}
+                <ImageLightbox
+                  images={lightboxImages}
+                  open={isOpen}
+                  onClose={closeLightbox}
+                  initialIndex={currentIndex}
+                />
 
                 {/* Buttons */}
                 <div className="flex gap-2.5 pt-2">

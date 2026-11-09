@@ -24,6 +24,7 @@ const fallbackAccounts: AccItem[] = [
     fake_price: 90000,
     images: ["/bannerReg.jpeg"],
     categoryType: "white",
+    is_white: true,
     viewers: 28,
   },
   {
@@ -34,6 +35,7 @@ const fallbackAccounts: AccItem[] = [
     fake_price: 120000,
     images: ["/bannerReg.jpeg"],
     categoryType: "white",
+    is_white: true,
     viewers: 15,
   },
   {
@@ -44,6 +46,7 @@ const fallbackAccounts: AccItem[] = [
     fake_price: 95000,
     images: ["/bannerReg.jpeg"],
     categoryType: "white",
+    is_white: true,
     viewers: 12,
   },
   {
@@ -185,6 +188,11 @@ export default function HomeProductList({
             const title = d.title || d.highlight || `Acc #${d.code || 100 + idx}`;
             const images = d.images && d.images.length > 0 ? d.images : ["/acc.jpg"];
             const viewers = 8 + ((idx * 7) % 21);
+            const isWhite = Boolean(
+              d.is_white !== undefined
+                ? d.is_white
+                : categoryType === "white" || rawCatName.includes("trắng")
+            );
 
             list.push({
               id: doc.id,
@@ -194,6 +202,7 @@ export default function HomeProductList({
               fake_price: fakePrice,
               images,
               categoryType,
+              is_white: isWhite,
               viewers,
             });
           });

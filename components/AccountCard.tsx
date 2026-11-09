@@ -2,7 +2,7 @@
 
 import Image from "next/image";
 import { useRouter } from "next/navigation";
-import { Flame, Zap, ZoomIn } from "lucide-react";
+import { Flame, Zap, ZoomIn, ShieldCheck } from "lucide-react";
 import { formatPrice } from "@/lib/utils";
 import { motion } from "framer-motion";
 
@@ -16,6 +16,7 @@ export type AccountCardData = {
   images: string[];
   viewers?: number;
   soldCount?: number;
+  is_white?: boolean;
 };
 
 interface AccountCardProps {
@@ -71,6 +72,15 @@ export default function AccountCard({ item, onPreviewImage }: AccountCardProps) 
 
           {/* Lớp phủ & Nút zoom góc ảnh */}
           <div className="absolute inset-0 bg-black/5 group-hover:bg-black/15 transition-colors" />
+
+          {/* Nhãn dán Trắng TT trong ảnh - Sáng sủa, sắc nét, phẳng */}
+          {item.is_white && (
+            <div className="absolute top-2 left-2 z-10 inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-white border border-emerald-400 text-emerald-700 text-[10px] sm:text-[11px] font-black select-none">
+              <ShieldCheck className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
+              <span>Trắng TT</span>
+            </div>
+          )}
+
           <button
             type="button"
             aria-label="Xem ảnh phóng to"
