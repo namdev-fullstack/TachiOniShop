@@ -12,11 +12,18 @@ export default function HomeBanner() {
           className="banner-3d group block relative w-full aspect-[16/9] sm:aspect-[21/9] md:aspect-[2.4/1] rounded-xl sm:rounded-2xl md:rounded-3xl overflow-hidden bg-slate-900"
         >
           <Image
-            src="/banner-gojo.jpg"
+            src="/banner.jpg"
             alt="Banner Gojo Satoru - Shop Liên Quân"
-            fill
+            width={1920}
+            height={800}
             priority
             sizes="(max-width: 1280px) 100vw, 1280px"
+            style={{
+              position: "absolute",
+              height: "126%",
+              width: "100%",
+              inset: "0px",
+            }}
             className="object-cover object-center group-hover:scale-[1.02] transition-transform duration-500"
           />
         </Link>
