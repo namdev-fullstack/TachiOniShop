@@ -42,31 +42,16 @@ export default function Header() {
       <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-14 sm:h-16 md:h-20">
           
-          {/* Logo & Brand Name */}
-          <Link href="/" className="flex items-center gap-2 group">
-            <div className="relative w-8 h-8 sm:w-10 sm:h-10 md:w-11 md:h-11 rounded-xl bg-gradient-to-tr from-blue-600 to-indigo-600 p-0.5 shadow-xs group-hover:shadow-md transition-shadow">
-              <div className="w-full h-full bg-white rounded-[10px] flex items-center justify-center overflow-hidden">
-                <Image
-                  src="/avatar2-removebg.PNG"
-                  alt="TachiOni"
-                  width={38}
-                  height={38}
-                  className="object-contain group-hover:scale-105 transition-transform"
-                />
-              </div>
-            </div>
-
-            <div className="flex flex-col">
-              <span className="text-sm sm:text-base md:text-lg font-black tracking-tight text-slate-900 group-hover:text-blue-600 transition-colors flex items-center gap-1">
-                TACHIONI
-                <span className="text-[9px] sm:text-[10px] bg-blue-100 text-blue-700 font-extrabold px-1.5 py-0.2 rounded uppercase">
-                  AOV
-                </span>
-              </span>
-              <span className="text-[9px] sm:text-[10px] font-semibold text-slate-400 uppercase tracking-wider hidden sm:block">
-                Dịch Vụ Cho Thuê Acc Uy Tín
-              </span>
-            </div>
+          {/* Logo */}
+          <Link href="/" className="flex items-center group">
+            <Image
+              src="/logo.png"
+              alt="Logo"
+              width={436}
+              height={182}
+              className="h-9 sm:h-11 md:h-13 w-auto object-contain transition-transform group-hover:scale-105"
+              priority
+            />
           </Link>
 
           {/* Desktop Nav */}
@@ -115,7 +100,7 @@ export default function Header() {
           <div className="hidden md:flex items-center space-x-2.5">
             <Link
               href="/products"
-              className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold transition-colors"
+              className="btn-3d-light inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl text-slate-700 text-xs font-bold"
             >
               <Search className="w-3.5 h-3.5 text-slate-500" />
               <span>Tìm Acc</span>
@@ -123,7 +108,7 @@ export default function Header() {
 
             <Link
               href="/contact"
-              className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white text-xs font-bold shadow-xs hover:shadow transition-all"
+              className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white text-xs font-extrabold shadow-[0_2px_4px_rgba(37,99,235,0.3),0_4px_10px_rgba(37,99,235,0.25),inset_0_1px_0_rgba(255,255,255,0.4)] border-b-2 border-b-blue-800 active:translate-y-0.5 transition-all"
             >
               <MessageCircle className="w-3.5 h-3.5" />
               <span>Hỗ Trợ Zalo</span>

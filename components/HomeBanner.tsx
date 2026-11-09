@@ -9,7 +9,7 @@ export default function HomeBanner() {
       <div className="max-w-7xl mx-auto px-2.5 sm:px-6 lg:px-8">
         <Link
           href="/products"
-          className="group block relative w-full aspect-[16/9] sm:aspect-[21/9] md:aspect-[2.4/1] rounded-xl sm:rounded-2xl md:rounded-3xl overflow-hidden border border-slate-200/90 shadow-2xs bg-slate-900 transition-all duration-300 hover:shadow-md"
+          className="banner-3d group block relative w-full aspect-[16/9] sm:aspect-[21/9] md:aspect-[2.4/1] rounded-xl sm:rounded-2xl md:rounded-3xl overflow-hidden bg-slate-900"
         >
           <Image
             src="/banner-gojo.jpg"

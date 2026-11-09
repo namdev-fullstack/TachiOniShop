@@ -54,7 +54,7 @@ export default function HomeCategories({
         {/* Section Header */}
         <div className="flex items-center justify-between gap-3 pb-3 sm:pb-4 border-b border-slate-200/80 mb-4 sm:mb-6">
           <div className="border-l-4 border-red-600 pl-2.5 sm:pl-3">
-            <h2 className="text-base sm:text-xl md:text-2xl font-black text-slate-900 tracking-tight uppercase leading-none">
+            <h2 className="text-3d-heading text-base sm:text-xl md:text-2xl font-black text-slate-900 tracking-tight uppercase leading-none">
               Phân Loại Thể Loại Acc
             </h2>
           </div>
@@ -75,10 +75,10 @@ export default function HomeCategories({
               <Link
                 key={cat.id}
                 href={`/products?category=${cat.id}`}
-                className="group rounded-xl sm:rounded-2xl border border-slate-200/90 hover:border-red-500 hover:shadow-md text-left cursor-pointer bg-white flex flex-col focus:outline-none transition-all duration-300"
+                className="card-3d group rounded-xl sm:rounded-2xl text-left cursor-pointer flex flex-col focus:outline-none overflow-hidden"
               >
-                {/* Thumbnail */}
-                <div className="relative aspect-[4/3] sm:aspect-[16/9] w-full overflow-hidden rounded-t-xl sm:rounded-t-2xl bg-slate-100 shine-glow">
+                {/* Thumbnail 3D */}
+                <div className="img-frame-3d relative aspect-[4/3] sm:aspect-[16/9] w-full overflow-hidden rounded-t-xl sm:rounded-t-2xl bg-slate-100 shine-glow">
                   <Image
                     src={cat.image}
                     alt={cat.name}
@@ -90,16 +90,16 @@ export default function HomeCategories({
 
                 {/* Info */}
                 <div className="p-2 sm:p-3 flex flex-col justify-center flex-grow">
-                  <h3 className="text-xs sm:text-sm font-bold text-slate-900 group-hover:text-red-600 transition-colors line-clamp-1">
+                  <h3 className="text-xs sm:text-sm font-extrabold text-slate-900 group-hover:text-red-600 transition-colors line-clamp-1 drop-shadow-xs">
                     {cat.name}
                   </h3>
                   {/* Đã bán */}
-                  <p className="text-[10px] sm:text-[11px] text-slate-400 mt-1 font-medium">
-                    Đã bán:{" "}
-                    <span className="text-red-500 font-bold">
+                  <div className="mt-1 flex items-center gap-1">
+                    <span className="text-[10px] sm:text-[11px] text-slate-500 font-medium">Đã bán:</span>
+                    <span className="badge-3d text-[10px] sm:text-[11px] bg-red-50 text-red-600 font-extrabold px-1.5 py-0.2 rounded border border-red-200">
                       {cat.soldCount.toLocaleString("vi-VN")}+
                     </span>
-                  </p>
+                  </div>
                 </div>
               </Link>
             );

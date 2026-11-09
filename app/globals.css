@@ -420,9 +420,9 @@ a:focus-visible {
 }
 
 .bg-animated-flashsale {
-  background: linear-gradient(135deg, #fff1f2, #fff7ed, #fdf2f8, #fef2f2, #fff7ed, #fff1f2);
-  background-size: 250% 250%;
-  animation: softGradient 14s ease infinite;
+  background: linear-gradient(135deg, #fef7f7, #fdf6f3, #faf5fc, #f5f8fd, #f4faf7, #fef7f7);
+  background-size: 300% 300%;
+  animation: softGradient 20s ease infinite;
 }
 
 @keyframes marquee-slow {
@@ -439,6 +439,204 @@ a:focus-visible {
 .animate-marquee-slow:hover {
   animation-play-state: paused;
 }
+
+/* ========================================================
+   3D POP & ELEVATION SYSTEM (Hiệu ứng 3D nổi khối sang trọng)
+   ======================================================== */
+
+/* Khung thẻ 3D: Đổ bóng đa tầng + viền phản quang trên + gờ chân 3D */
+.card-3d {
+  background: #ffffff;
+  border: 1px solid rgba(226, 232, 240, 0.95);
+  border-bottom: 3px solid rgba(203, 213, 225, 0.95);
+  box-shadow: 
+    0 2px 4px -1px rgba(0, 0, 0, 0.04),
+    0 8px 16px -2px rgba(15, 23, 42, 0.06),
+    0 16px 28px -4px rgba(15, 23, 42, 0.05),
+    inset 0 1px 0 0 rgba(255, 255, 255, 0.9);
+  transition: transform 0.28s cubic-bezier(0.16, 1, 0.3, 1),
+              box-shadow 0.28s cubic-bezier(0.16, 1, 0.3, 1),
+              border-color 0.28s ease,
+              border-bottom-color 0.28s ease;
+}
+
+.card-3d:hover {
+  transform: translateY(-6px) scale(1.008);
+  border-color: rgba(239, 68, 68, 0.35);
+  border-bottom: 3px solid rgba(220, 38, 38, 0.7);
+  box-shadow: 
+    0 4px 6px -1px rgba(0, 0, 0, 0.05),
+    0 16px 28px -4px rgba(220, 38, 38, 0.12),
+    0 24px 44px -6px rgba(15, 23, 42, 0.15),
+    inset 0 1px 0 0 rgba(255, 255, 255, 1);
+}
+
+/* Khung container Flash Sale dạng hộp nổi 3D cao cấp */
+.container-3d-flashsale {
+  border: 1px solid rgba(254, 205, 211, 0.9);
+  border-bottom: 4px solid rgba(251, 113, 133, 0.85);
+  box-shadow: 
+    0 4px 6px -1px rgba(0, 0, 0, 0.03),
+    0 12px 24px -2px rgba(244, 63, 94, 0.08),
+    0 24px 48px -4px rgba(15, 23, 42, 0.08),
+    inset 0 2px 0 0 rgba(255, 255, 255, 0.85);
+}
+
+/* Khung ảnh 3D: Lồng sâu vào hộp với viền lõm và vệt sáng kính */
+.img-frame-3d {
+  position: relative;
+  box-shadow: 
+    inset 0 2px 6px 0 rgba(0, 0, 0, 0.12),
+    inset 0 -2px 6px 0 rgba(0, 0, 0, 0.08);
+}
+
+.img-frame-3d::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 5;
+  background: linear-gradient(
+    180deg,
+    rgba(255, 255, 255, 0.18) 0%,
+    rgba(255, 255, 255, 0) 30%,
+    rgba(0, 0, 0, 0) 70%,
+    rgba(0, 0, 0, 0.16) 100%
+  );
+}
+
+/* Banner 3D: Nổi khối có bóng đổ sâu, tạo cảm giác lơ lửng */
+.banner-3d {
+  border: 1px solid rgba(226, 232, 240, 0.9);
+  border-bottom: 4px solid rgba(203, 213, 225, 0.95);
+  box-shadow: 
+    0 4px 6px -1px rgba(0, 0, 0, 0.04),
+    0 16px 32px -4px rgba(15, 23, 42, 0.14),
+    0 32px 56px -6px rgba(15, 23, 42, 0.08),
+    inset 0 1px 0 0 rgba(255, 255, 255, 0.6);
+  transition: transform 0.35s cubic-bezier(0.16, 1, 0.3, 1),
+              box-shadow 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.banner-3d:hover {
+  transform: translateY(-4px);
+  box-shadow: 
+    0 6px 10px -1px rgba(0, 0, 0, 0.06),
+    0 22px 42px -4px rgba(15, 23, 42, 0.18),
+    0 40px 68px -6px rgba(15, 23, 42, 0.12),
+    inset 0 1px 0 0 rgba(255, 255, 255, 0.8);
+}
+
+/* Nút bấm 3D nổi màu đỏ: Bấm có cảm giác lún thật */
+.btn-3d-red {
+  background: linear-gradient(180deg, #ef4444 0%, #dc2626 55%, #b91c1c 100%);
+  border: 1px solid #dc2626;
+  border-bottom: 3px solid #991b1b;
+  box-shadow: 
+    0 2px 4px 0 rgba(185, 28, 28, 0.3),
+    0 6px 14px -1px rgba(185, 28, 28, 0.35),
+    inset 0 1px 0 0 rgba(255, 255, 255, 0.4);
+  transition: all 0.16s ease-out;
+}
+
+.btn-3d-red:hover {
+  background: linear-gradient(180deg, #f87171 0%, #ef4444 55%, #dc2626 100%);
+  box-shadow: 
+    0 4px 8px 0 rgba(185, 28, 28, 0.38),
+    0 10px 18px -2px rgba(185, 28, 28, 0.45),
+    inset 0 1px 0 0 rgba(255, 255, 255, 0.55);
+  transform: translateY(-1.5px);
+}
+
+.btn-3d-red:active {
+  transform: translateY(2px) !important;
+  border-bottom-width: 1px !important;
+  box-shadow: 
+    0 1px 2px 0 rgba(185, 28, 28, 0.25),
+    inset 0 2px 4px 0 rgba(0, 0, 0, 0.25) !important;
+}
+
+/* Nút bấm phụ 3D (trắng / icon) */
+.btn-3d-light {
+  background: linear-gradient(180deg, #ffffff 0%, #f8fafc 100%);
+  border: 1px solid #cbd5e1;
+  border-bottom: 2px solid #94a3b8;
+  box-shadow: 
+    0 1px 3px 0 rgba(0, 0, 0, 0.06),
+    0 3px 6px -1px rgba(0, 0, 0, 0.05),
+    inset 0 1px 0 0 rgba(255, 255, 255, 1);
+  transition: all 0.15s ease-out;
+}
+
+.btn-3d-light:hover {
+  background: #ffffff;
+  border-color: #94a3b8;
+  transform: translateY(-1px);
+  box-shadow: 
+    0 2px 5px 0 rgba(0, 0, 0, 0.08),
+    0 6px 12px -2px rgba(0, 0, 0, 0.08),
+    inset 0 1px 0 0 rgba(255, 255, 255, 1);
+}
+
+.btn-3d-light:active {
+  transform: translateY(1.5px);
+  border-bottom-width: 1px;
+  box-shadow: inset 0 2px 4px 0 rgba(0, 0, 0, 0.12);
+}
+
+/* Badge 3D: Huy hiệu nổi khối có bóng và viền phản quang */
+.badge-3d {
+  border-bottom: 2px solid rgba(0, 0, 0, 0.22);
+  box-shadow: 
+    0 2px 5px -1px rgba(0, 0, 0, 0.22),
+    0 1px 2px 0 rgba(0, 0, 0, 0.15),
+    inset 0 1px 0 0 rgba(255, 255, 255, 0.45);
+}
+
+/* Text 3D: Chữ tiêu đề nổi khối sắc sảo */
+.text-3d-heading {
+  text-shadow: 
+    0 1px 1px rgba(255, 255, 255, 0.9),
+    0 2px 3px rgba(15, 23, 42, 0.12);
+}
+
+/* Text 3D: Giá tiền nổi bật có đổ bóng viền */
+.text-3d-price {
+  text-shadow: 
+    0 1px 2px rgba(220, 38, 38, 0.28),
+    0 3px 6px rgba(220, 38, 38, 0.18);
+  letter-spacing: -0.02em;
+}
+
+/* Tab filter 3D */
+.tab-3d-active {
+  border-bottom: 3px solid rgba(0, 0, 0, 0.35) !important;
+  box-shadow: 
+    0 2px 4px 0 rgba(0, 0, 0, 0.15),
+    0 6px 14px -2px rgba(0, 0, 0, 0.2),
+    inset 0 1px 0 0 rgba(255, 255, 255, 0.35) !important;
+  transform: translateY(-1.5px);
+}
+
+.tab-3d-inactive {
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-bottom: 2.5px solid #cbd5e1;
+  box-shadow: 
+    0 1px 3px 0 rgba(0, 0, 0, 0.04),
+    inset 0 1px 0 0 rgba(255, 255, 255, 0.8);
+  transition: all 0.15s ease-out;
+}
+
+.tab-3d-inactive:hover {
+  background: #f8fafc;
+  transform: translateY(-1px);
+  border-bottom-color: #94a3b8;
+  box-shadow: 
+    0 3px 6px 0 rgba(0, 0, 0, 0.06),
+    inset 0 1px 0 0 rgba(255, 255, 255, 1);
+}
+
 
 
 

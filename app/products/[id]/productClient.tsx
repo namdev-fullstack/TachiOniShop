@@ -299,10 +299,10 @@ export default function ProductsPage() {
                 whileTap={{ scale: 0.96 }}
                 type="button"
                 onClick={() => setSelectedCategory(tab.id)}
-                className={`w-full py-2 sm:py-2.5 px-2 rounded-xl text-[11px] sm:text-xs font-bold transition-all cursor-pointer touch-manipulation select-none flex items-center justify-center gap-1.5 ring-2 ${
+                className={`w-full py-2 sm:py-2.5 px-2 rounded-xl text-[11px] sm:text-xs font-bold transition-all cursor-pointer touch-manipulation select-none flex items-center justify-center gap-1.5 ${
                   isActive
-                    ? `${tab.activeColor} shadow-sm`
-                    : "bg-white text-slate-700 hover:bg-slate-50 border border-slate-200 shadow-xs ring-transparent"
+                    ? `${tab.activeColor} tab-3d-active`
+                    : "tab-3d-inactive text-slate-700 hover:text-slate-900"
                 }`}
               >
                 <span className="leading-tight text-center">{tab.label}</span>

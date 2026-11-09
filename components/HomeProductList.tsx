@@ -246,7 +246,7 @@ export default function HomeProductList({
         {/* Header danh sách & Nút xem thêm */}
         <div className="flex items-center justify-between gap-3 pb-3 sm:pb-4 border-b border-slate-200/80 mb-4 sm:mb-6">
           <div className="border-l-4 border-red-600 pl-2.5 sm:pl-3">
-            <h2 className="text-base sm:text-xl md:text-2xl font-black text-slate-900 tracking-tight uppercase leading-none">
+            <h2 className="text-3d-heading text-base sm:text-xl md:text-2xl font-black text-slate-900 tracking-tight uppercase leading-none">
               Danh Sách Tài Khoản
             </h2>
           </div>
@@ -278,10 +278,10 @@ export default function HomeProductList({
                   e.preventDefault();
                   handleTabChange(tab.id);
                 }}
-                className={`w-full py-2 sm:py-2.5 px-2 sm:px-3 rounded-xl text-[11px] sm:text-sm font-bold transition-all cursor-pointer touch-manipulation select-none active:scale-95 flex items-center justify-center gap-1.5 ${
+                className={`w-full py-2 sm:py-2.5 px-2 sm:px-3 rounded-xl text-[11px] sm:text-sm font-bold transition-all cursor-pointer touch-manipulation select-none flex items-center justify-center gap-1.5 ${
                   isActive
-                    ? `${tab.color} text-white shadow-xs ring-2 ring-offset-1 ring-current`
-                    : "bg-white text-slate-700 hover:bg-slate-100 hover:text-slate-900 border border-slate-200/90 shadow-2xs"
+                    ? `${tab.color} text-white tab-3d-active`
+                    : "tab-3d-inactive text-slate-700 hover:text-slate-900"
                 }`}
               >
                 <span className="leading-tight text-center">{tab.label}</span>
