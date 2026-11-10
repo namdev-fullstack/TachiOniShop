@@ -1,12 +1,8 @@
-import Header from '@/components/header';
 import './globals.css';
 import type { Metadata } from 'next';
 import { Inter } from 'next/font/google';
-import Footer from '@/components/footer';
-import { Toaster } from 'sonner';
-
-import ScrollToTop from '@/components/ScrollToTop';
 import MaintenancePage from '@/components/MaintenancePage';
+import SiteLayoutWrapper from '@/components/SiteLayoutWrapper';
 
 const inter = Inter({ subsets: ['latin'] });
 
@@ -14,11 +10,10 @@ export const metadata: Metadata = {
   title: 'Dịch vụ cho thuê tài khoản game uy tín',
   description: 'Nền tảng hỗ trợ và cho thuê tài khoản game hàng đầu...',
   icons: {
-    icon: "/avatar2-removebg.PNG", // favicon chính
+    icon: "/avatar2-removebg.PNG",
     shortcut: "/avatar2-removebg.PNG",
-    apple: "/avatar2-removebg.PNG", // cho iOS
+    apple: "/avatar2-removebg.PNG",
   },
-  // phần metadata khác của bạn giữ nguyên
 };
 
 export default function RootLayout({
@@ -34,14 +29,7 @@ export default function RootLayout({
         {isMaintenance ? (
           <MaintenancePage />
         ) : (
-        <>
-            <ScrollToTop />
-            <Header />
-            {children}
-            <Footer />
-            <Toaster richColors position="bottom-right" />
-        </>
-         
+          <SiteLayoutWrapper>{children}</SiteLayoutWrapper>
         )}
       </body>
     </html>
