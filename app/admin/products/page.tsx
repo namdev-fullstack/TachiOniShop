@@ -417,6 +417,7 @@ export default function AdminProductsPage() {
                                 className="relative w-12 h-12 rounded-lg overflow-hidden border border-slate-200 cursor-pointer group shrink-0"
                                 onClick={() => openLightbox(product.images, 0)}
                               >
+                                {/* eslint-disable-next-line @next/next/no-img-element */}
                                 <img
                                   src={product.images[0]}
                                   alt={product.code}

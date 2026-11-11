@@ -524,6 +524,7 @@ export default function CreateProductForm() {
                 onClick={() => openLightbox(preview, i)}
                 className="group relative w-20 h-20 sm:w-24 sm:h-24 rounded-xl border border-slate-200 overflow-hidden cursor-zoom-in bg-slate-50 shadow-2xs hover:shadow-md hover:border-indigo-400 transition-all select-none"
               >
+                {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img
                   src={img}
                   alt={`Preview ${i + 1}`}

@@ -12,7 +12,21 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Search, ChevronLeft, ChevronRight, TriangleAlert, ArrowUpDown, X } from "lucide-react";
+import {
+  Search,
+  ChevronLeft,
+  ChevronRight,
+  TriangleAlert,
+  ArrowUpDown,
+  X,
+  Grid,
+  Crown,
+  Zap,
+  Flame,
+  ShieldCheck,
+  Sparkles,
+  RotateCcw,
+} from "lucide-react";
 
 // Firebase
 import { db } from "@/lib/firebaseConfig";
@@ -58,12 +72,52 @@ type Account = {
   categoryType: "white" | "lq_under1m" | "lq_1m_3m" | "lq_over3m";
 };
 
-const CATEGORY_TABS: { id: CategoryKey; label: string; color: string; activeColor: string }[] = [
-  { id: "all",        label: "Tất Cả",          color: "",             activeColor: "bg-slate-900 text-white ring-slate-900" },
-  { id: "white",      label: "Acc Reg Trắng TT", color: "",             activeColor: "bg-emerald-600 text-white ring-emerald-600" },
-  { id: "lq_under1m", label: "Acc LQ < 1M",      color: "",             activeColor: "bg-blue-600 text-white ring-blue-600" },
-  { id: "lq_1m_3m",   label: "Acc LQ 1M–3M",     color: "",             activeColor: "bg-violet-600 text-white ring-violet-600" },
-  { id: "lq_over3m",  label: "Acc LQ 3M+",        color: "",             activeColor: "bg-amber-500 text-white ring-amber-500" },
+const CATEGORY_TABS = [
+  {
+    id: "all" as CategoryKey,
+    label: "Tất Cả",
+    icon: Grid,
+    activeClasses: "bg-slate-900 text-white border-slate-900 shadow-md shadow-slate-900/20",
+    inactiveClasses: "bg-slate-100/90 hover:bg-slate-200 text-slate-700 border-slate-200",
+    badgeActive: "bg-white/25 text-white",
+    badgeInactive: "bg-white text-slate-600 border border-slate-200/80",
+  },
+  {
+    id: "white" as CategoryKey,
+    label: "Acc Trắng TT",
+    icon: ShieldCheck,
+    activeClasses: "bg-emerald-600 text-white border-emerald-600 shadow-md shadow-emerald-600/25",
+    inactiveClasses: "bg-emerald-50 hover:bg-emerald-100/80 text-emerald-800 border-emerald-200/90",
+    badgeActive: "bg-white/25 text-white",
+    badgeInactive: "bg-white text-emerald-700 border border-emerald-200/80",
+  },
+  {
+    id: "lq_under1m" as CategoryKey,
+    label: "Acc LQ < 1M",
+    icon: Zap,
+    activeClasses: "bg-blue-600 text-white border-blue-600 shadow-md shadow-blue-600/25",
+    inactiveClasses: "bg-blue-50 hover:bg-blue-100/80 text-blue-800 border-blue-200/90",
+    badgeActive: "bg-white/25 text-white",
+    badgeInactive: "bg-white text-blue-700 border border-blue-200/80",
+  },
+  {
+    id: "lq_1m_3m" as CategoryKey,
+    label: "Acc LQ 1M–3M",
+    icon: Flame,
+    activeClasses: "bg-violet-600 text-white border-violet-600 shadow-md shadow-violet-600/25",
+    inactiveClasses: "bg-violet-50 hover:bg-violet-100/80 text-violet-800 border-violet-200/90",
+    badgeActive: "bg-white/25 text-white",
+    badgeInactive: "bg-white text-violet-700 border border-violet-200/80",
+  },
+  {
+    id: "lq_over3m" as CategoryKey,
+    label: "Acc VIP 3M+",
+    icon: Crown,
+    activeClasses: "bg-amber-500 text-white border-amber-500 shadow-md shadow-amber-500/25",
+    inactiveClasses: "bg-amber-50 hover:bg-amber-100/80 text-amber-800 border-amber-200/90",
+    badgeActive: "bg-white/25 text-white",
+    badgeInactive: "bg-white text-amber-700 border border-amber-200/80",
+  },
 ];
 
 function resolveCategoryType(
@@ -80,6 +134,8 @@ function resolveCategoryType(
 export default function ProductsPage() {
   const searchParams = useSearchParams();
   const catQuery = searchParams ? searchParams.get("category") : null;
+  const urlSearchQuery = searchParams ? searchParams.get("search") || searchParams.get("q") : null;
+  const focusQuery = searchParams ? searchParams.get("focus") : null;
 
   // ========================================
   // DATA
@@ -90,10 +146,39 @@ export default function ProductsPage() {
   // ========================================
   // FILTER & SORT
   // ========================================
-  const [search, setSearch] = useState("");
+  const [search, setSearch] = useState(urlSearchQuery || "");
   const textMeasureRef = useRef<HTMLSpanElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
   const [textWidth, setTextWidth] = useState(0);
+
+  // Đồng bộ từ khóa tìm kiếm khi URL thay đổi
+  useEffect(() => {
+    if (urlSearchQuery !== null) {
+      setSearch(urlSearchQuery);
+    }
+  }, [urlSearchQuery]);
+
+  // Tự động focus và cuộn đến ô tìm kiếm khi có param focus hoặc nhận event
+  useEffect(() => {
+    const focusInput = () => {
+      if (inputRef.current) {
+        inputRef.current.focus();
+        inputRef.current.scrollIntoView({ behavior: "smooth", block: "center" });
+      }
+    };
+
+    if (focusQuery) {
+      const timer = setTimeout(focusInput, 150);
+      return () => clearTimeout(timer);
+    }
+
+    const handleFocusEvent = () => {
+      focusInput();
+    };
+
+    window.addEventListener("focus-search-input", handleFocusEvent);
+    return () => window.removeEventListener("focus-search-input", handleFocusEvent);
+  }, [focusQuery]);
 
   // Đo chiều dài text để đặt nút X ngay cạnh từ vừa gõ
   useEffect(() => {
@@ -267,7 +352,7 @@ export default function ProductsPage() {
     <div className="min-h-screen bg-white py-4 sm:py-8">
       <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 space-y-4 sm:space-y-5">
 
-        {/* TITLE + INFO */}
+        {/* TITLE + INFO (Giữ nguyên giao diện sáng ban đầu) */}
         <div className="border-b border-slate-200 pb-4 space-y-3">
           <div>
             <h1 className="text-xl sm:text-2xl md:text-3xl font-black text-slate-900 tracking-tight">
@@ -313,30 +398,40 @@ export default function ProductsPage() {
           </div>
         </div>
 
-        {/* CATEGORY TABS — 5 loại chuẩn */}
+        {/* CATEGORY TABS — Màu sắc riêng biệt cho từng tab */}
         <div className="grid grid-cols-2 sm:grid-cols-5 gap-2">
           {CATEGORY_TABS.map((tab, i) => {
+            const Icon = tab.icon;
             const isActive = selectedCategory === tab.id;
             const count = counts[tab.id];
+
             return (
               <motion.button
                 key={tab.id}
-                initial={{ opacity: 0, y: 10 }}
+                initial={{ opacity: 0, y: 6 }}
                 animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: i * 0.06, duration: 0.25 }}
-                whileTap={{ scale: 0.96 }}
+                transition={{ delay: i * 0.03, duration: 0.2 }}
+                whileTap={{ scale: 0.97 }}
                 type="button"
-                onClick={() => setSelectedCategory(tab.id)}
-                className={`w-full py-2 sm:py-2.5 px-2 rounded-xl text-[11px] sm:text-xs font-bold transition-all cursor-pointer touch-manipulation select-none flex items-center justify-center gap-1.5 ${
+                onClick={() => {
+                  setSelectedCategory(tab.id);
+                  setPage(1);
+                }}
+                className={`relative w-full py-2.5 px-3 rounded-xl sm:rounded-2xl text-xs font-bold transition-all duration-200 cursor-pointer touch-manipulation select-none flex items-center justify-between gap-1.5 border ${
                   isActive
-                    ? `${tab.activeColor} tab-3d-active`
-                    : "tab-3d-inactive text-slate-700 hover:text-slate-900"
+                    ? `${tab.activeClasses} scale-[1.01]`
+                    : `${tab.inactiveClasses}`
                 }`}
               >
-                <span className="leading-tight text-center">{tab.label}</span>
-                <span className={`text-[10px] px-1.5 py-0.5 rounded-full font-semibold shrink-0 ${
-                  isActive ? "bg-white/25 text-white" : "bg-slate-100 text-slate-500"
-                }`}>
+                <div className="flex items-center gap-1.5 sm:gap-2 truncate">
+                  <Icon className="w-4 h-4 shrink-0" />
+                  <span className="truncate">{tab.label}</span>
+                </div>
+                <span
+                  className={`text-[10px] sm:text-[11px] px-1.5 sm:px-2 py-0.5 rounded-full font-bold shrink-0 transition-colors ${
+                    isActive ? tab.badgeActive : tab.badgeInactive
+                  }`}
+                >
                   {count}
                 </span>
               </motion.button>
@@ -348,9 +443,8 @@ export default function ProductsPage() {
         <div className="flex flex-col sm:flex-row gap-2.5 sm:items-center">
           {/* Search */}
           <div className="relative flex-1">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 pointer-events-none z-10" />
+            <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 pointer-events-none z-10" />
 
-            {/* Hidden span để đo chính xác chiều rộng text theo font chữ */}
             <span
               ref={textMeasureRef}
               aria-hidden="true"
@@ -360,11 +454,18 @@ export default function ProductsPage() {
             </span>
 
             <Input
+              id="search-account-input"
               ref={inputRef}
               placeholder="Tìm theo #mã số hoặc tên acc (vd: #10245, nak, flo, tulen...)..."
               value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              className="pl-9 pr-10 rounded-xl border-slate-200 text-xs sm:text-sm h-10 shadow-2xs"
+              onFocus={() => {
+                window.dispatchEvent(new CustomEvent("search-input-focused"));
+              }}
+              onChange={(e) => {
+                setSearch(e.target.value);
+                setPage(1);
+              }}
+              className="pl-9 pr-10 rounded-xl bg-white border border-slate-200 text-slate-800 placeholder-slate-400 text-xs sm:text-sm h-10 shadow-2xs hover:border-slate-300 focus:border-blue-500 focus-visible:ring-2 focus-visible:ring-blue-500/20 transition-all"
             />
 
             {search && (
@@ -386,9 +487,9 @@ export default function ProductsPage() {
           </div>
 
           {/* Sort */}
-          <div className="sm:w-52">
-            <Select onValueChange={(v) => setSortKey(v as SortKey)} value={sortKey}>
-              <SelectTrigger className="rounded-xl border-slate-200 text-xs sm:text-sm h-10">
+          <div className="sm:w-52 shrink-0">
+            <Select onValueChange={(v) => { setSortKey(v as SortKey); setPage(1); }} value={sortKey}>
+              <SelectTrigger className="rounded-xl bg-white border border-slate-200 hover:border-slate-300 text-slate-700 text-xs sm:text-sm h-10 shadow-2xs transition-all px-3">
                 <ArrowUpDown className="w-3.5 h-3.5 mr-1.5 text-slate-400 shrink-0" />
                 <SelectValue placeholder="Sắp xếp" />
               </SelectTrigger>
@@ -399,6 +500,31 @@ export default function ProductsPage() {
               </SelectContent>
             </Select>
           </div>
+        </div>
+
+        {/* STATUS BAR: KẾT QUẢ TÌM KIẾM & NÚT ĐẶT LẠI */}
+        <div className="flex items-center justify-between text-xs text-slate-500 px-1 pt-0.5">
+          <div className="flex items-center gap-1.5">
+            <span>Hiển thị</span>
+            <strong className="text-slate-800 font-bold">{filteredData.length}</strong>
+            <span>tài khoản phù hợp</span>
+          </div>
+
+          {(search || selectedCategory !== "all" || sortKey !== "newest") && (
+            <button
+              type="button"
+              onClick={() => {
+                setSearch("");
+                setSelectedCategory("all");
+                setSortKey("newest");
+                setPage(1);
+              }}
+              className="text-xs text-blue-600 hover:text-blue-800 font-bold flex items-center gap-1 hover:underline cursor-pointer transition-colors"
+            >
+              <RotateCcw className="w-3 h-3" />
+              <span>Đặt lại bộ lọc</span>
+            </button>
+          )}
         </div>
 
         {/* GRID SẢN PHẨM */}

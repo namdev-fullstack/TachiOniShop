@@ -144,7 +144,7 @@ export default function StatsSection() {
                 </div>
 
                 <p className="text-slate-600 text-xs sm:text-sm italic leading-relaxed mb-4">
-                  "{rev.comment}"
+                  &ldquo;{rev.comment}&rdquo;
                 </p>
               </div>
 

@@ -521,6 +521,7 @@ export default function EditProductPage() {
                           onClick={() => openLightbox(images, i)}
                           className="group relative w-16 h-16 sm:w-20 sm:h-20 rounded-xl border border-slate-200 overflow-hidden cursor-zoom-in bg-slate-50"
                         >
+                          {/* eslint-disable-next-line @next/next/no-img-element */}
                           <img
                             src={img}
                             alt={`Product image ${i + 1}`}

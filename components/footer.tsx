@@ -1,7 +1,7 @@
 import { Award, Shield } from "lucide-react";
 
 export default function Footer() {
-  return <footer className="bg-gradient-to-br md:mt-24 mt-20 from-gray-900 via-gray-800 to-black text-white py-16 relative overflow-hidden">
+  return <footer className="bg-gradient-to-br md:mt-24 mt-20 from-gray-900 via-gray-800 to-black text-white pt-16 pb-24 md:pb-16 relative overflow-hidden">
   {/* Background Decorations */}
   <div className="absolute inset-0 overflow-hidden pointer-events-none">
     <div className="absolute top-10 left-10 w-32 h-32 bg-gradient-to-r from-violet-500/10 to-blue-500/10 rounded-full animate-float"></div>

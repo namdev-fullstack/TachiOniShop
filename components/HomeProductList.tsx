@@ -2,13 +2,69 @@
 
 import { useState, useEffect, useMemo } from "react";
 import Link from "next/link";
-import { ChevronRight } from "lucide-react";
+import {
+  ChevronRight,
+  Grid,
+  ShieldCheck,
+  Zap,
+  Flame,
+  Crown,
+} from "lucide-react";
+import { motion } from "framer-motion";
 import { collection, getDocs } from "firebase/firestore";
 import { db } from "@/lib/firebaseConfig";
 import AccountCard, { AccountCardData } from "./AccountCard";
 import ImagePreviewModal from "./ImagePreviewModal";
 
 export type CategoryKey = "all" | "white" | "lq_under1m" | "lq_1m_3m" | "lq_over3m";
+
+const CATEGORY_TABS = [
+  {
+    id: "all" as CategoryKey,
+    label: "Tất Cả",
+    icon: Grid,
+    activeClasses: "bg-slate-900 text-white border-slate-900 shadow-md shadow-slate-900/20",
+    inactiveClasses: "bg-slate-100/90 hover:bg-slate-200 text-slate-700 border-slate-200",
+    badgeActive: "bg-white/25 text-white",
+    badgeInactive: "bg-white text-slate-600 border border-slate-200/80",
+  },
+  {
+    id: "white" as CategoryKey,
+    label: "Acc Trắng TT",
+    icon: ShieldCheck,
+    activeClasses: "bg-emerald-600 text-white border-emerald-600 shadow-md shadow-emerald-600/25",
+    inactiveClasses: "bg-emerald-50 hover:bg-emerald-100/80 text-emerald-800 border-emerald-200/90",
+    badgeActive: "bg-white/25 text-white",
+    badgeInactive: "bg-white text-emerald-700 border border-emerald-200/80",
+  },
+  {
+    id: "lq_under1m" as CategoryKey,
+    label: "Acc LQ < 1M",
+    icon: Zap,
+    activeClasses: "bg-blue-600 text-white border-blue-600 shadow-md shadow-blue-600/25",
+    inactiveClasses: "bg-blue-50 hover:bg-blue-100/80 text-blue-800 border-blue-200/90",
+    badgeActive: "bg-white/25 text-white",
+    badgeInactive: "bg-white text-blue-700 border border-blue-200/80",
+  },
+  {
+    id: "lq_1m_3m" as CategoryKey,
+    label: "Acc LQ 1M–3M",
+    icon: Flame,
+    activeClasses: "bg-violet-600 text-white border-violet-600 shadow-md shadow-violet-600/25",
+    inactiveClasses: "bg-violet-50 hover:bg-violet-100/80 text-violet-800 border-violet-200/90",
+    badgeActive: "bg-white/25 text-white",
+    badgeInactive: "bg-white text-violet-700 border border-violet-200/80",
+  },
+  {
+    id: "lq_over3m" as CategoryKey,
+    label: "Acc VIP 3M+",
+    icon: Crown,
+    activeClasses: "bg-amber-500 text-white border-amber-500 shadow-md shadow-amber-500/25",
+    inactiveClasses: "bg-amber-50 hover:bg-amber-100/80 text-amber-800 border-amber-200/90",
+    badgeActive: "bg-white/25 text-white",
+    badgeInactive: "bg-white text-amber-700 border border-amber-200/80",
+  },
+];
 
 export type AccItem = AccountCardData & {
   categoryType: "white" | "lq_under1m" | "lq_1m_3m" | "lq_over3m";
@@ -269,39 +325,43 @@ export default function HomeProductList({
           </Link>
         </div>
 
-        {/* Tab Thể Loại: TỰ ĐỘNG XUỐNG HÀNG TRÊN MOBILE, KHÔNG CẦN SCROLL NGANG */}
-        <div className="relative z-20 grid grid-cols-2 sm:grid-cols-5 gap-2 sm:gap-2.5 mb-4 sm:mb-6">
-          {[
-            { id: "all", label: "Tất Cả", count: counts.all, color: "bg-slate-900" },
-            { id: "white", label: "Acc Reg Trắng TT", count: counts.white, color: "bg-emerald-600" },
-            { id: "lq_under1m", label: "Acc LQ < 1M", count: counts.lq_under1m, color: "bg-blue-600" },
-            { id: "lq_1m_3m", label: "Acc LQ 1M–3M", count: counts.lq_1m_3m, color: "bg-violet-600" },
-            { id: "lq_over3m", label: "Acc LQ 3M+", count: counts.lq_over3m, color: "bg-amber-500" },
-          ].map((tab) => {
+        {/* CATEGORY TABS — Đồng bộ 100% với trang Danh Sách Tài Khoản */}
+        <div className="grid grid-cols-2 sm:grid-cols-5 gap-2 mb-4 sm:mb-6">
+          {CATEGORY_TABS.map((tab, i) => {
+            const Icon = tab.icon;
             const isActive = currentTab === tab.id;
+            const count = counts[tab.id as CategoryKey] || 0;
+
             return (
-              <button
+              <motion.button
                 key={tab.id}
+                initial={{ opacity: 0, y: 6 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: i * 0.03, duration: 0.2 }}
+                whileTap={{ scale: 0.97 }}
                 type="button"
                 onClick={(e) => {
                   e.preventDefault();
                   handleTabChange(tab.id);
                 }}
-                className={`w-full py-2 sm:py-2.5 px-2 sm:px-3 rounded-xl text-[11px] sm:text-sm font-bold transition-all cursor-pointer touch-manipulation select-none flex items-center justify-center gap-1.5 ${
+                className={`relative w-full py-2.5 px-3 rounded-xl sm:rounded-2xl text-xs font-bold transition-all duration-200 cursor-pointer touch-manipulation select-none flex items-center justify-between gap-1.5 border ${
                   isActive
-                    ? `${tab.color} text-white tab-3d-active`
-                    : "tab-3d-inactive text-slate-700 hover:text-slate-900"
+                    ? `${tab.activeClasses} scale-[1.01]`
+                    : `${tab.inactiveClasses}`
                 }`}
               >
-                <span className="leading-tight text-center">{tab.label}</span>
+                <div className="flex items-center gap-1.5 sm:gap-2 truncate">
+                  <Icon className="w-4 h-4 shrink-0" />
+                  <span className="truncate">{tab.label}</span>
+                </div>
                 <span
-                  className={`text-[10px] px-1.5 py-0.5 rounded-full font-semibold shrink-0 ${
-                    isActive ? "bg-white/20 text-white" : "bg-slate-100 text-slate-500"
+                  className={`text-[10px] sm:text-[11px] px-1.5 sm:px-2 py-0.5 rounded-full font-bold shrink-0 transition-colors ${
+                    isActive ? tab.badgeActive : tab.badgeInactive
                   }`}
                 >
-                  {tab.count}
+                  {count}
                 </span>
-              </button>
+              </motion.button>
             );
           })}
         </div>
