@@ -7,12 +7,11 @@ import SiteLayoutWrapper from '@/components/SiteLayoutWrapper';
 const inter = Inter({ subsets: ['latin'] });
 
 export const metadata: Metadata = {
-  title: 'Dịch vụ cho thuê tài khoản game uy tín',
-  description: 'Nền tảng hỗ trợ và cho thuê tài khoản game hàng đầu...',
+  title: 'Dịch vụ hỗ trợ nâng cấp Acc',
   icons: {
-    icon: "/avatar2-removebg.PNG",
-    shortcut: "/avatar2-removebg.PNG",
-    apple: "/avatar2-removebg.PNG",
+    icon: '/logo.png',
+    shortcut: '/logo.png',
+    apple: '/logo.png',
   },
 };
 
