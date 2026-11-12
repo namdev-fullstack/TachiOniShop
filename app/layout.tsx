@@ -9,9 +9,9 @@ const inter = Inter({ subsets: ['latin'] });
 export const metadata: Metadata = {
   title: 'Dịch vụ hỗ trợ nâng cấp Acc',
   icons: {
-    icon: '/logo.png',
-    shortcut: '/logo.png',
-    apple: '/logo.png',
+    icon: '/logo-metadata.png',
+    shortcut: '/logo-metadata.png',
+    apple: '/logo-metadata.png',
   },
 };
 
