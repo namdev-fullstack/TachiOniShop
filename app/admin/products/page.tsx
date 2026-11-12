@@ -1,8 +1,8 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useMemo } from "react";
 import { db } from "@/lib/firebaseConfig";
-import { collection, getDocs, doc, updateDoc, deleteDoc } from "firebase/firestore";
+import { collection, getDocs, doc, updateDoc, deleteDoc, onSnapshot } from "firebase/firestore";
 import { toast } from "sonner";
 
 import { Button } from "@/components/ui/button";
@@ -81,6 +81,9 @@ export default function AdminProductsPage() {
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedSeller, setSelectedSeller] = useState<string>("all");
+  const [registeredUsers, setRegisteredUsers] = useState<
+    { uid: string; name?: string; email?: string; role?: "admin" | "staff" }[]
+  >([]);
 
   // State cho modal xác nhận xóa
   const [deleteProductTarget, setDeleteProductTarget] = useState<Product | null>(null);
@@ -133,14 +136,146 @@ export default function AdminProductsPage() {
     fetchProducts();
   }, []);
 
-  // Danh sách các seller để filter (dành cho Admin)
-  const sellersList = Array.from(
-    new Set(
-      products
-        .map((p) => p.seller_name || (p.seller_role === "admin" ? "Admin" : "Chưa rõ"))
-        .filter(Boolean)
-    )
-  );
+  // Lắng nghe danh sách Người dùng / Nhân viên / CTV từ Firestore để filter luôn có người mới
+  useEffect(() => {
+    if (!isAdmin) return;
+    const unsub = onSnapshot(
+      collection(db, "users"),
+      (snapshot) => {
+        const uList = snapshot.docs.map((d) => ({
+          uid: d.id,
+          ...d.data(),
+        })) as { uid: string; name?: string; email?: string; role?: "admin" | "staff" }[];
+        setRegisteredUsers(uList);
+      },
+      (error) => {
+        console.error("Error listening to users collection:", error);
+      }
+    );
+    return () => unsub();
+  }, [isAdmin]);
+
+  // Hàm kiểm tra một acc có thuộc về seller này không
+  const isProductOfSeller = (
+    product: Product,
+    seller: { uid?: string; email?: string; label?: string; role?: string }
+  ) => {
+    if (seller.uid && product.seller_id === seller.uid) return true;
+    if (
+      seller.email &&
+      product.seller_email &&
+      product.seller_email.toLowerCase() === seller.email.toLowerCase()
+    ) {
+      return true;
+    }
+    if (
+      seller.label &&
+      product.seller_name &&
+      product.seller_name.trim().toLowerCase() === seller.label.trim().toLowerCase()
+    ) {
+      return true;
+    }
+    if (
+      seller.role === "admin" &&
+      (product.seller_role === "admin" ||
+        product.seller_name?.toLowerCase() === "admin" ||
+        (!product.seller_role && !product.seller_id))
+    ) {
+      return true;
+    }
+    return false;
+  };
+
+  // Danh sách các seller để filter (Đầy đủ cả nhân viên mới tạo từ DB users lẫn người bán trong products)
+  const sellersList = useMemo(() => {
+    const list: {
+      id: string;
+      label: string;
+      email?: string;
+      uid?: string;
+      role?: string;
+      count: number;
+    }[] = [];
+    const seenUids = new Set<string>();
+    const seenNames = new Set<string>();
+
+    // 1. Luôn thêm Admin trước
+    const adminUser = registeredUsers.find((u) => u.role === "admin");
+    const adminCount = products.filter((p) =>
+      isProductOfSeller(p, {
+        uid: adminUser?.uid,
+        email: adminUser?.email,
+        label: adminUser?.name || "Admin",
+        role: "admin",
+      })
+    ).length;
+
+    list.push({
+      id: adminUser?.uid || "admin",
+      label: adminUser?.name || "Admin",
+      email: adminUser?.email,
+      uid: adminUser?.uid,
+      role: "admin",
+      count: adminCount,
+    });
+    if (adminUser?.uid) seenUids.add(adminUser.uid);
+    seenNames.add("admin");
+    if (adminUser?.name) seenNames.add(adminUser.name.trim().toLowerCase());
+
+    // 2. Thêm tất cả Nhân viên / CTV đã tạo trong Firestore collection 'users'
+    const staffUsers = registeredUsers.filter((u) => u.role !== "admin");
+    for (const u of staffUsers) {
+      const label = u.name || u.email?.split("@")[0] || "Cộng tác viên";
+      const count = products.filter((p) =>
+        isProductOfSeller(p, {
+          uid: u.uid,
+          email: u.email,
+          label: u.name,
+          role: u.role,
+        })
+      ).length;
+
+      list.push({
+        id: u.uid,
+        label,
+        email: u.email,
+        uid: u.uid,
+        role: u.role,
+        count,
+      });
+      seenUids.add(u.uid);
+      if (u.name) seenNames.add(u.name.trim().toLowerCase());
+    }
+
+    // 3. Thêm các người bán xuất hiện trong products nếu chưa có trong users
+    for (const p of products) {
+      if (p.seller_id && seenUids.has(p.seller_id)) continue;
+      const sName = p.seller_name?.trim();
+      if (!sName || seenNames.has(sName.toLowerCase())) continue;
+
+      const count = products.filter((prod) =>
+        isProductOfSeller(prod, {
+          uid: p.seller_id,
+          email: p.seller_email,
+          label: sName,
+          role: p.seller_role,
+        })
+      ).length;
+
+      list.push({
+        id: p.seller_id || sName,
+        label: sName,
+        email: p.seller_email,
+        uid: p.seller_id,
+        role: p.seller_role,
+        count,
+      });
+      if (p.seller_id) seenUids.add(p.seller_id);
+      seenNames.add(sName.toLowerCase());
+    }
+
+    return list;
+  }, [registeredUsers, products]);
 
   // Filter products by role, search term & seller filter
   useEffect(() => {
@@ -163,12 +298,11 @@ export default function AdminProductsPage() {
         return uidMatch || emailMatch || nameMatch;
       });
     } else if (isAdmin && selectedSeller !== "all") {
-      // Admin filter theo người bán
-      result = result.filter(
-        (product) =>
-          (product.seller_name || (product.seller_role === "admin" ? "Admin" : "Chưa rõ")) ===
-          selectedSeller
-      );
+      // Admin filter theo người bán (khớp theo seller option đã chọn)
+      const targetSeller = sellersList.find((s) => s.id === selectedSeller);
+      if (targetSeller) {
+        result = result.filter((product) => isProductOfSeller(product, targetSeller));
+      }
     }
 
     // Filter theo tìm kiếm
@@ -361,8 +495,8 @@ export default function AdminProductsPage() {
                   >
                     <option value="all">Tất cả người đăng ({products.length})</option>
                     {sellersList.map((seller) => (
-                      <option key={seller} value={seller}>
-                        Người đăng: {seller}
+                      <option key={seller.id} value={seller.id}>
+                        {seller.label} ({seller.count})
                       </option>
                     ))}
                   </select>
