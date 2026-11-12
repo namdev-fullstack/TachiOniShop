@@ -190,7 +190,10 @@ export default function HomeProductList({
   const [currentTab, setCurrentTab] = useState<string>(activeCategory || "all");
   const [accounts, setAccounts] = useState<AccItem[]>(fallbackAccounts);
   const [loading, setLoading] = useState(false);
-  const [previewImage, setPreviewImage] = useState<string | null>(null);
+  const [previewTarget, setPreviewTarget] = useState<{
+    imageUrl: string;
+    item?: AccountCardData | null;
+  } | null>(null);
 
   // Đồng bộ tab khi prop activeCategory thay đổi từ bên ngoài (ví dụ click vào 3 thẻ category ở trên)
   useEffect(() => {
@@ -373,7 +376,7 @@ export default function HomeProductList({
               <AccountCard
                 key={item.id}
                 item={item}
-                onPreviewImage={(url) => setPreviewImage(url)}
+                onPreviewImage={(url, it) => setPreviewTarget({ imageUrl: url, item: it })}
               />
             ))}
           </div>
@@ -396,10 +399,10 @@ export default function HomeProductList({
 
       </div>
 
-      {/* Modal hiển thị ảnh gần full chiều cao, không co giãn */}
+      {/* Modal hiển thị ảnh gần full chiều cao, có nút Heart thêm yêu thích */}
       <ImagePreviewModal
-        imageUrl={previewImage}
-        onClose={() => setPreviewImage(null)}
+        data={previewTarget}
+        onClose={() => setPreviewTarget(null)}
       />
     </section>
   );

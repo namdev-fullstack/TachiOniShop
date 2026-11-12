@@ -1,10 +1,12 @@
 "use client";
 
+import { useState, useEffect } from "react";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
-import { Flame, Zap, ZoomIn, ShieldCheck } from "lucide-react";
+import { Flame, Zap, ZoomIn, ShieldCheck, Heart } from "lucide-react";
 import { formatPrice } from "@/lib/utils";
 import { motion } from "framer-motion";
+import { isItemFavorite, toggleFavoriteItem } from "@/lib/favorites";
 
 export type AccountCardData = {
   id: string;
@@ -21,7 +23,8 @@ export type AccountCardData = {
 
 interface AccountCardProps {
   item: AccountCardData;
-  onPreviewImage: (url: string) => void;
+  onPreviewImage: (url: string, item?: AccountCardData) => void;
+  onRemoveFavorite?: (item: AccountCardData) => void;
 }
 
 // Hàm tính số người đang xem ổn định theo mã tài khoản
@@ -35,13 +38,49 @@ function getViewersCount(codeOrId: string, initialViewers?: number): number {
   return 8 + (Math.abs(hash) % 21);
 }
 
-export default function AccountCard({ item, onPreviewImage }: AccountCardProps) {
+export default function AccountCard({
+  item,
+  onPreviewImage,
+  onRemoveFavorite,
+}: AccountCardProps) {
   const router = useRouter();
   const imgSrc = item.images && item.images.length > 0 ? item.images[0] : "/acc.jpg";
   const displayTitle = item.title || item.highlight || `Acc #${item.code}`;
   const realPrice = Number(item.price) || 100000;
   const fakePrice = Number(item.fake_price) || Math.round(realPrice * 1.7);
   const viewers = getViewersCount(item.code || item.id, item.viewers);
+
+  const [isFavorited, setIsFavorited] = useState(false);
+
+  useEffect(() => {
+    setIsFavorited(isItemFavorite(item.id || item.code));
+  }, [item]);
+
+  useEffect(() => {
+    const handleUpdate = () => {
+      setIsFavorited(isItemFavorite(item.id || item.code));
+    };
+    window.addEventListener("favorites-updated", handleUpdate);
+    return () => window.removeEventListener("favorites-updated", handleUpdate);
+  }, [item]);
+
+  const handleToggleFavorite = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (isFavorited && onRemoveFavorite) {
+      onRemoveFavorite(item);
+      return;
+    }
+    const added = toggleFavoriteItem({
+      id: item.id,
+      code: item.code,
+      title: displayTitle,
+      price: realPrice,
+      fake_price: fakePrice,
+      images: item.images && item.images.length > 0 ? item.images : [imgSrc],
+      is_white: item.is_white,
+    });
+    setIsFavorited(added);
+  };
 
   return (
     <motion.article
@@ -57,7 +96,7 @@ export default function AccountCard({ item, onPreviewImage }: AccountCardProps) 
         <div
           onClick={(e) => {
             e.stopPropagation();
-            onPreviewImage(imgSrc);
+            onPreviewImage(imgSrc, item);
           }}
           className="img-frame-3d relative aspect-square w-full overflow-hidden bg-slate-100 cursor-zoom-in select-none shine-glow"
         >
@@ -81,17 +120,33 @@ export default function AccountCard({ item, onPreviewImage }: AccountCardProps) 
             </div>
           )}
 
-          <button
-            type="button"
-            aria-label="Xem ảnh phóng to"
-            onClick={(e) => {
-              e.stopPropagation();
-              onPreviewImage(imgSrc);
-            }}
-            className="badge-3d absolute top-2 right-2 w-7 h-7 rounded-full bg-slate-900/75 hover:bg-black text-white flex items-center justify-center opacity-85 group-hover:opacity-100 transition-all z-10 cursor-pointer"
-          >
-            <ZoomIn className="w-3.5 h-3.5" />
-          </button>
+          {/* Nút Yêu thích & Phóng to ảnh góc phải */}
+          <div className="absolute top-2 right-2 z-10 flex items-center gap-1.5">
+            <button
+              type="button"
+              aria-label={isFavorited ? "Bỏ yêu thích" : "Thêm vào yêu thích"}
+              onClick={handleToggleFavorite}
+              className="w-7 h-7 rounded-full bg-white/90 hover:bg-white text-slate-700 hover:text-red-500 shadow-md flex items-center justify-center transition-all cursor-pointer"
+            >
+              <Heart
+                className={`w-3.5 h-3.5 transition-transform active:scale-125 ${
+                  isFavorited ? "text-red-500 fill-red-500" : "text-slate-600"
+                }`}
+              />
+            </button>
+
+            <button
+              type="button"
+              aria-label="Xem ảnh phóng to"
+              onClick={(e) => {
+                e.stopPropagation();
+                onPreviewImage(imgSrc, item);
+              }}
+              className="w-7 h-7 rounded-full bg-slate-900/75 hover:bg-black text-white flex items-center justify-center opacity-85 group-hover:opacity-100 transition-all cursor-pointer shadow-md"
+            >
+              <ZoomIn className="w-3.5 h-3.5" />
+            </button>
+          </div>
         </div>
 
         {/* Thông tin: Mã #id, Title, Người đang xem, Giá thật & Giá fake */}

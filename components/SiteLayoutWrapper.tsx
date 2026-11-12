@@ -4,6 +4,7 @@ import { usePathname } from "next/navigation";
 import Header from "@/components/header";
 import Footer from "@/components/footer";
 import ScrollToTop from "@/components/ScrollToTop";
+import FavoriteNotificationToast from "@/components/FavoriteNotificationToast";
 import { Toaster } from "sonner";
 
 interface SiteLayoutWrapperProps {
@@ -29,6 +30,7 @@ export default function SiteLayoutWrapper({ children }: SiteLayoutWrapperProps) 
   return (
     <>
       <ScrollToTop />
+      <FavoriteNotificationToast />
       <Header />
       <main className="flex-1">{children}</main>
       <Footer />

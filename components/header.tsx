@@ -17,72 +17,50 @@ import {
   ChevronRight,
   Headphones,
   Sparkles,
+  LayoutGrid,
+  Heart,
+  Bell,
 } from "lucide-react";
 
-// Icon tìm kiếm hiện đại phong cách tối giản (tương tự bản thiết kế: vòng tròn ống kính + điểm nối tròn nhỏ)
-function ModernSearchIcon({ className = "w-6 h-6" }: { className?: string }) {
-  return (
-    <svg
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="2.2"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      className={className}
-    >
-      <circle cx="10.5" cy="10.5" r="6.5" />
-      <circle cx="17.5" cy="17.5" r="2.2" />
-    </svg>
-  );
-}
+import { getFavorites } from "@/lib/favorites";
 
+// Danh sách các tab chuẩn thiết kế Figma mobile
 const navItems = [
-  { id: "products", label: "Kho Acc", href: "/products", icon: Flame },
-  { id: "search", label: "Tìm kiếm", href: "/products?focus=1", icon: ModernSearchIcon },
   { id: "home", label: "Trang chủ", href: "/", icon: Home },
-  { id: "contact", label: "Liên hệ", href: "/contact", icon: Phone },
-  { id: "more", label: "Thêm", href: "#", icon: Menu },
+  { id: "products", label: "Kho acc", href: "/products", icon: LayoutGrid },
+  { id: "favorites", label: "Yêu thích", href: "/favorites", icon: Heart },
+  { id: "support", label: "Hỗ trợ", href: "/contact", icon: MessageCircle },
 ];
 
 export default function Header() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [favoriteCount, setFavoriteCount] = useState(0);
   const pathname = usePathname();
   const router = useRouter();
 
-  const getIndexFromPath = (path: string, isMenuOpen: boolean) => {
-    if (isMenuOpen) return 4;
-    if (path === "/") return 2; // Trang chủ đặt ở chính giữa!
-    if (path === "/contact") return 3;
-    if (path.startsWith("/products")) {
-      if (typeof window !== "undefined" && window.location.search.includes("focus=1")) {
-        return 1; // Tìm kiếm
-      }
-      return 0; // Kho Acc
-    }
-    return 2;
+  const getIndexFromPath = (path: string) => {
+    if (path === "/") return 0; // Trang chủ
+    if (path.startsWith("/favorites") || path.includes("favorite")) return 2; // Yêu thích
+    if (path === "/contact") return 3; // Hỗ trợ
+    if (path.startsWith("/products")) return 1; // Kho acc
+    return 0;
   };
 
-  const [activeIndex, setActiveIndex] = useState(() => getIndexFromPath(pathname, mobileMenuOpen));
+  const [activeIndex, setActiveIndex] = useState(() => getIndexFromPath(pathname));
 
-  // Đồng bộ activeIndex khi URL hoặc trạng thái menu thay đổi
+  // Đồng bộ activeIndex khi URL thay đổi
   useEffect(() => {
-    if (typeof window !== "undefined" && window.location.search.includes("focus=1")) {
-      setActiveIndex(1);
-      return;
-    }
-    setActiveIndex(getIndexFromPath(pathname, mobileMenuOpen));
-  }, [pathname, mobileMenuOpen]);
+    setActiveIndex(getIndexFromPath(pathname));
+  }, [pathname]);
 
-  // Lắng nghe sự kiện người dùng focus vào ô tìm kiếm
+  // Cập nhật số lượng tài khoản yêu thích
   useEffect(() => {
-    const handleSearchFocus = () => setActiveIndex(1);
-    window.addEventListener("focus-search-input", handleSearchFocus);
-    window.addEventListener("search-input-focused", handleSearchFocus);
-    return () => {
-      window.removeEventListener("focus-search-input", handleSearchFocus);
-      window.removeEventListener("search-input-focused", handleSearchFocus);
+    const updateCount = () => {
+      setFavoriteCount(getFavorites().length);
     };
+    updateCount();
+    window.addEventListener("favorites-updated", updateCount);
+    return () => window.removeEventListener("favorites-updated", updateCount);
   }, []);
 
   // Xử lý khi nhấn nút tìm kiếm: focus ngay vào ô tìm kiếm sản phẩm
@@ -92,7 +70,6 @@ export default function Header() {
     setActiveIndex(1);
 
     if (pathname.startsWith("/products")) {
-      // Đang ở trang sản phẩm -> phát event và focus trực tiếp
       window.dispatchEvent(new CustomEvent("focus-search-input"));
       const inputEl = document.getElementById("search-account-input") as HTMLInputElement;
       if (inputEl) {
@@ -100,7 +77,6 @@ export default function Header() {
         inputEl.scrollIntoView({ behavior: "smooth", block: "center" });
       }
     } else {
-      // Đang ở trang khác -> chuyển sang trang /products và yêu cầu focus
       router.push("/products?focus=1");
     }
   };
@@ -195,23 +171,27 @@ export default function Header() {
 
               <Link
                 href="/contact"
-                className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white text-xs font-extrabold shadow-[0_2px_4px_rgba(37,99,235,0.3),0_4px_10px_rgba(37,99,235,0.25),inset_0_1px_0_rgba(255,255,255,0.4)] border-b-2 border-b-blue-800 active:translate-y-0.5 transition-all"
+                className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl bg-[#5D3FD3] hover:bg-[#4d32b5] text-white text-xs font-extrabold shadow-sm active:translate-y-0.5 transition-all"
               >
-                <MessageCircle className="w-3.5 h-3.5" />
-                <span>Hỗ Trợ Zalo</span>
+                <Phone className="w-3.5 h-3.5" />
+                <span>Liên Hệ Hỗ Trợ</span>
               </Link>
             </div>
 
-            {/* Mobile Top Right Quick Actions (gọn gàng, hiện đại) */}
+            {/* Mobile Top Right: Nút Zalo cá nhân (mở app Zalo) */}
             <div className="flex md:hidden items-center">
               <a
                 href="https://zalo.me/0966216495"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold shadow-xs transition-colors"
+                className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-[#0068FF] hover:bg-[#0055d4] active:scale-95 text-white font-black text-xs shadow-xs transition-all cursor-pointer"
+                aria-label="Nhắn Zalo"
+                title="Mở Zalo cá nhân: 0966 216 495"
               >
-                <MessageCircle className="w-3.5 h-3.5" />
-                <span>Zalo CSKH</span>
+                <svg className="w-4 h-4 fill-white shrink-0" viewBox="0 0 24 24">
+                  <path d="M12 2C6.48 2 2 6.03 2 11c0 2.87 1.5 5.43 3.86 7.02l-.86 3.14a.75.75 0 0 0 .95.91l3.7-1.42c.74.23 1.53.35 2.35.35 5.52 0 10-4.03 10-9s-4.48-9-10-9zm.5 13.5h-5a.75.75 0 0 1 0-1.5h3.14l-3.8-4.56a.75.75 0 0 1 .58-1.24h4.75a.75.75 0 0 1 0 1.5h-2.94l3.8 4.56a.75.75 0 0 1-.53 1.24z" />
+                </svg>
+                <span>Zalo</span>
               </a>
             </div>
           </div>
@@ -359,107 +339,71 @@ export default function Header() {
         </div>
       )}
 
-      {/* Mobile Bottom Navigation Bar: Nổi bật & nẩy nhẹ nhàng cho item đang được chọn, thanh màu tím di chuyển mượt mà */}
-      <nav className="md:hidden fixed bottom-0 left-0 right-0 z-50 bg-white rounded-t-[24px] border-t border-slate-100 shadow-[0_-6px_25px_rgba(0,0,0,0.06)] pb-[max(0.4rem,env(safe-area-inset-bottom))] select-none">
-        <div className="relative max-w-md mx-auto h-[62px] flex items-center justify-around px-2">
+      {/* Mobile Bottom Navigation Bar: Chuẩn thiết kế Figma (Trang chủ, Kho acc, Yêu thích, Hỗ trợ) */}
+      <nav className="md:hidden fixed bottom-0 left-0 right-0 z-50 bg-white border-t border-slate-200/90 shadow-[0_-4px_25px_rgba(0,0,0,0.06)] pb-[max(0.4rem,env(safe-area-inset-bottom))] select-none">
+        <div className="max-w-md mx-auto h-[60px] flex items-center justify-around px-2">
           {navItems.map((item, idx) => {
             const Icon = item.icon;
             const isActive = activeIndex === idx;
 
             const handleClick = (e: React.MouseEvent) => {
-              if (item.id === "search") {
-                setActiveIndex(1);
-                handleSearchClick(e);
-              } else if (item.id === "products") {
-                setActiveIndex(0);
-                setMobileMenuOpen(false);
-              } else if (item.id === "more") {
-                e.preventDefault();
-                const nextOpen = !mobileMenuOpen;
-                setMobileMenuOpen(nextOpen);
-                setActiveIndex(nextOpen ? 4 : getIndexFromPath(pathname, false));
+              if (item.id === "support") {
+                setActiveIndex(3);
+                if (pathname === "/contact") {
+                  setMobileMenuOpen(!mobileMenuOpen);
+                }
               } else {
                 setActiveIndex(idx);
                 setMobileMenuOpen(false);
               }
             };
 
-            const content = (
-              <div className="relative w-full h-full flex flex-col items-center justify-center cursor-pointer select-none">
-                {/* Nút tròn màu tím nổi lên nhẹ nhàng khi được chọn (chỉ nhô nhẹ 6px), có layoutId để lướt mượt qua các item */}
-                {isActive && (
-                  <motion.div
-                    layoutId="active-nav-bubble"
-                    transition={{ type: "spring", stiffness: 400, damping: 30 }}
-                    className="absolute -top-1.5 w-[44px] h-[44px] rounded-full bg-[#5b4df6] shadow-[0_4px_16px_rgba(91,77,246,0.38)] z-0 pointer-events-none"
-                  />
-                )}
-
-                {/* Khối icon và nhãn: nâng nhẹ lên 6px và nhấp nhô nhẹ nhàng khi được chọn */}
-                <div
-                  className={`relative z-10 flex flex-col items-center justify-center transition-transform duration-200 ${
-                    isActive ? "-translate-y-1.5" : "translate-y-0"
-                  }`}
-                >
-                  <motion.div
-                    animate={
-                      isActive
-                        ? { scale: [1, 1.05, 1.01, 1.03, 1] }
-                        : { scale: 1 }
-                    }
-                    transition={{
-                      duration: 1.4,
-                      repeat: isActive ? Infinity : 0,
-                      repeatDelay: 0.8,
-                      ease: "easeInOut",
-                    }}
-                    className="w-[44px] h-[44px] flex items-center justify-center"
-                  >
-                    <Icon
-                      className={`w-5 h-5 transition-colors ${
-                        isActive
-                          ? "text-white stroke-[2.3]"
-                          : "text-slate-800 stroke-[2]"
-                      }`}
-                    />
-                  </motion.div>
-
-                  <span
-                    className={`text-[10px] font-semibold tracking-tight transition-all ${
-                      isActive
-                        ? "text-[#5b4df6] font-bold -mt-0.5"
-                        : "text-slate-600 mt-0"
-                    }`}
-                  >
-                    {item.label}
-                  </span>
-                </div>
-              </div>
-            );
-
-            if (item.id === "search" || item.id === "more") {
-              return (
-                <button
-                  key={item.id}
-                  type="button"
-                  onClick={handleClick}
-                  className="w-1/5 h-full flex items-center justify-center cursor-pointer select-none focus:outline-hidden"
-                  aria-label={item.label}
-                >
-                  {content}
-                </button>
-              );
-            }
-
             return (
               <Link
                 key={item.id}
                 href={item.href}
                 onClick={handleClick}
-                className="w-1/5 h-full flex items-center justify-center cursor-pointer select-none focus:outline-hidden"
+                className="relative flex-1 h-full flex flex-col items-center justify-center cursor-pointer select-none group"
                 aria-label={item.label}
               >
-                {content}
+                {/* Thanh chỉ báo active ở mép trên tab */}
+                {isActive && (
+                  <motion.div
+                    layoutId="active-mobile-tab-indicator"
+                    transition={{ type: "spring", stiffness: 500, damping: 35 }}
+                    className="absolute top-0 w-8 h-[2.5px] rounded-full bg-[#5D3FD3]"
+                  />
+                )}
+
+                <div
+                  className={`relative flex flex-col items-center justify-center transition-all duration-200 ${
+                    isActive ? "scale-105" : "scale-100 group-hover:scale-105"
+                  }`}
+                >
+                  <div className="relative">
+                    <Icon
+                      className={`w-5 h-5 transition-colors ${
+                        isActive
+                          ? "text-[#5D3FD3] stroke-[2.4]"
+                          : "text-slate-500 stroke-[1.8] group-hover:text-slate-800"
+                      }`}
+                    />
+                    {item.id === "favorites" && favoriteCount > 0 && (
+                      <span className="absolute -top-1.5 -right-2.5 min-w-[15px] h-3.5 px-1 rounded-full bg-red-500 text-white text-[9px] font-black flex items-center justify-center shadow-xs">
+                        {favoriteCount > 9 ? "9+" : favoriteCount}
+                      </span>
+                    )}
+                  </div>
+                  <span
+                    className={`text-[10px] sm:text-[11px] font-semibold tracking-tight mt-1 transition-colors ${
+                      isActive
+                        ? "text-[#5D3FD3] font-bold"
+                        : "text-slate-500 group-hover:text-slate-800"
+                    }`}
+                  >
+                    {item.label}
+                  </span>
+                </div>
               </Link>
             );
           })}

@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState, useRef } from "react";
-import { useSearchParams } from "next/navigation";
+import { useSearchParams, useRouter } from "next/navigation";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import {
@@ -26,6 +26,7 @@ import {
   ShieldCheck,
   Sparkles,
   RotateCcw,
+  SlidersHorizontal,
 } from "lucide-react";
 
 // Firebase
@@ -35,6 +36,7 @@ import { collection, getDocs } from "firebase/firestore";
 // Shared components
 import AccountCard from "@/components/AccountCard";
 import ImagePreviewModal from "@/components/ImagePreviewModal";
+import ConsultationSection from "@/components/ConsultationSection";
 import { matchAccountFuzzy } from "@/lib/searchUtils";
 import { motion, AnimatePresence } from "framer-motion";
 
@@ -47,7 +49,7 @@ type Category = {
   name: string;
 };
 
-type CategoryKey = "all" | "white" | "lq_under1m" | "lq_1m_3m" | "lq_over3m";
+type CategoryKey = "all" | "sale" | "white" | "lq_under1m" | "lq_1m_3m" | "lq_over3m";
 type SortKey = "newest" | "price_asc" | "price_desc";
 
 type Account = {
@@ -131,7 +133,21 @@ function resolveCategoryType(
   return "lq_over3m";
 }
 
+const CATEGORY_PILLS: {
+  id: CategoryKey;
+  label: string;
+  icon: React.ComponentType<{ className?: string }>;
+}[] = [
+  { id: "all", label: "Tất cả", icon: Grid },
+  { id: "sale", label: "Sale", icon: Flame },
+  { id: "white", label: "Trắng TT", icon: ShieldCheck },
+  { id: "lq_under1m", label: "Dưới 1M", icon: Zap },
+  { id: "lq_1m_3m", label: "1M – 3M", icon: Sparkles },
+  { id: "lq_over3m", label: "Từ 3M+", icon: Crown },
+];
+
 export default function ProductsPage() {
+  const router = useRouter();
   const searchParams = useSearchParams();
   const catQuery = searchParams ? searchParams.get("category") : null;
   const urlSearchQuery = searchParams ? searchParams.get("search") || searchParams.get("q") : null;
@@ -206,7 +222,10 @@ export default function ProductsPage() {
   // ========================================
   // IMAGE PREVIEW MODAL
   // ========================================
-  const [previewImage, setPreviewImage] = useState<string | null>(null);
+  const [previewTarget, setPreviewTarget] = useState<{
+    imageUrl: string;
+    item?: any;
+  } | null>(null);
 
   // ========================================
   // FETCH DATA
@@ -296,7 +315,11 @@ export default function ProductsPage() {
         );
 
       const matchCategory =
-        selectedCategory === "all" || acc.categoryType === selectedCategory;
+        selectedCategory === "all"
+          ? true
+          : selectedCategory === "sale"
+          ? Boolean(acc.is_sale)
+          : acc.categoryType === selectedCategory;
 
       return matchSearch && matchCategory;
     });
@@ -342,6 +365,7 @@ export default function ProductsPage() {
   // Đếm số lượng theo category
   const counts = useMemo(() => ({
     all: data.length,
+    sale: data.filter((a) => a.is_sale).length,
     white: data.filter((a) => a.categoryType === "white").length,
     lq_under1m: data.filter((a) => a.categoryType === "lq_under1m").length,
     lq_1m_3m: data.filter((a) => a.categoryType === "lq_1m_3m").length,
@@ -349,106 +373,29 @@ export default function ProductsPage() {
   }), [data]);
 
   return (
-    <div className="min-h-screen bg-white py-4 sm:py-8">
+    <div className="min-h-screen bg-[#F8F8FC] py-3 sm:py-6">
       <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 space-y-4 sm:space-y-5">
 
-        {/* TITLE + INFO (Giữ nguyên giao diện sáng ban đầu) */}
-        <div className="border-b border-slate-200 pb-4 space-y-3">
-          <div>
-            <h1 className="text-xl sm:text-2xl md:text-3xl font-black text-slate-900 tracking-tight">
-              Kho Tài Khoản Trải Nghiệm
-            </h1>
-            <p className="text-xs sm:text-sm text-slate-500 mt-1">
-              <span className="font-semibold text-slate-700">{filteredData.length}</span> tài khoản có sẵn · Cập nhật liên tục 24/7
-            </p>
-          </div>
-
-          {/* Cam kết */}
-          <motion.div
-            className="flex flex-wrap gap-2"
-            initial="hidden"
-            animate="visible"
-            variants={{ visible: { transition: { staggerChildren: 0.08 } } }}
-          >
-            {[
-              { icon: "🔒", text: "Acc không chung chủ" },
-              { icon: "🔄", text: "Hỗ trợ đổi thông tin" },
-              { icon: "🛡️", text: "Bảo hành 100%" },
-              { icon: "⚡", text: "Bàn giao tức thì" },
-            ].map((item) => (
-              <motion.span
-                key={item.text}
-                variants={{
-                  hidden: { opacity: 0, scale: 0.85 },
-                  visible: { opacity: 1, scale: 1, transition: { duration: 0.2 } },
-                }}
-                className="inline-flex items-center gap-1 text-[11px] sm:text-xs font-semibold text-emerald-700 bg-emerald-50 border border-emerald-200 px-2.5 py-1 rounded-full"
-              >
-                {item.icon} {item.text}
-              </motion.span>
-            ))}
-          </motion.div>
-
-          {/* Lưu ý */}
-          <div className="bg-amber-50 border border-amber-200 rounded-xl px-3 py-2.5 flex gap-2 items-start">
-            <span className="text-amber-500 text-sm mt-px shrink-0">⚠️</span>
-            <p className="text-[11px] sm:text-xs text-amber-800 leading-relaxed">
-              <span className="font-bold">Lưu ý:</span> Acc khẳng định đúng như hình & mô tả. Mức rank có thể thay đổi do reset theo mùa giải.
-            </p>
-          </div>
+        {/* HEADING & SUBHEADING */}
+        <div className="pt-1">
+          <h1 className="text-2xl sm:text-3xl font-black text-slate-900 tracking-tight">
+            Tìm acc hợp gu.
+          </h1>
+          <p className="text-xs sm:text-sm text-slate-500 mt-1 font-normal">
+            Chọn tài khoản. Sẵn sàng vào trận.
+          </p>
         </div>
 
-        {/* CATEGORY TABS — Màu sắc riêng biệt cho từng tab */}
-        <div className="grid grid-cols-2 sm:grid-cols-5 gap-2">
-          {CATEGORY_TABS.map((tab, i) => {
-            const Icon = tab.icon;
-            const isActive = selectedCategory === tab.id;
-            const count = counts[tab.id];
-
-            return (
-              <motion.button
-                key={tab.id}
-                initial={{ opacity: 0, y: 6 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: i * 0.03, duration: 0.2 }}
-                whileTap={{ scale: 0.97 }}
-                type="button"
-                onClick={() => {
-                  setSelectedCategory(tab.id);
-                  setPage(1);
-                }}
-                className={`relative w-full py-2.5 px-3 rounded-xl sm:rounded-2xl text-xs font-bold transition-all duration-200 cursor-pointer touch-manipulation select-none flex items-center justify-between gap-1.5 border ${
-                  isActive
-                    ? `${tab.activeClasses} scale-[1.01]`
-                    : `${tab.inactiveClasses}`
-                }`}
-              >
-                <div className="flex items-center gap-1.5 sm:gap-2 truncate">
-                  <Icon className="w-4 h-4 shrink-0" />
-                  <span className="truncate">{tab.label}</span>
-                </div>
-                <span
-                  className={`text-[10px] sm:text-[11px] px-1.5 sm:px-2 py-0.5 rounded-full font-bold shrink-0 transition-colors ${
-                    isActive ? tab.badgeActive : tab.badgeInactive
-                  }`}
-                >
-                  {count}
-                </span>
-              </motion.button>
-            );
-          })}
-        </div>
-
-        {/* SEARCH + SORT BAR */}
-        <div className="flex flex-col sm:flex-row gap-2.5 sm:items-center">
-          {/* Search */}
+        {/* SEARCH BAR & FILTER BUTTON */}
+        <div className="flex items-center gap-2.5">
+          {/* Search Input */}
           <div className="relative flex-1">
-            <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 pointer-events-none z-10" />
+            <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 pointer-events-none z-10" />
 
             <span
               ref={textMeasureRef}
               aria-hidden="true"
-              className="absolute invisible pointer-events-none whitespace-pre text-xs sm:text-sm font-normal -z-50 select-none"
+              className="absolute invisible pointer-events-none whitespace-pre text-sm font-normal -z-50 select-none"
             >
               {search}
             </span>
@@ -456,7 +403,7 @@ export default function ProductsPage() {
             <Input
               id="search-account-input"
               ref={inputRef}
-              placeholder="Tìm theo #mã số hoặc tên acc (vd: #10245, nak, flo, tulen...)..."
+              placeholder="Tìm tướng, skin, mã acc..."
               value={search}
               onFocus={() => {
                 window.dispatchEvent(new CustomEvent("search-input-focused"));
@@ -465,7 +412,7 @@ export default function ProductsPage() {
                 setSearch(e.target.value);
                 setPage(1);
               }}
-              className="pl-9 pr-10 rounded-xl bg-white border border-slate-200 text-slate-800 placeholder-slate-400 text-xs sm:text-sm h-10 shadow-2xs hover:border-slate-300 focus:border-blue-500 focus-visible:ring-2 focus-visible:ring-blue-500/20 transition-all"
+              className="h-12 pl-11 pr-10 rounded-2xl bg-white border border-slate-200/90 text-slate-900 placeholder:text-slate-400 text-sm shadow-2xs hover:border-slate-300 focus:outline-none focus:border-[#5B5DFE] focus-visible:ring-2 focus-visible:ring-[#5B5DFE]/20 transition-all"
             />
 
             {search && (
@@ -475,10 +422,7 @@ export default function ProductsPage() {
                   setSearch("");
                   inputRef.current?.focus();
                 }}
-                style={{
-                  left: `min(calc(36px + ${textWidth}px + 6px), calc(100% - 28px))`,
-                }}
-                className="absolute top-1/2 -translate-y-1/2 w-5 h-5 rounded-full bg-slate-200/90 hover:bg-slate-300 active:scale-90 text-slate-600 hover:text-slate-900 flex items-center justify-center transition-all cursor-pointer z-10 shadow-2xs"
+                className="absolute right-3.5 top-1/2 -translate-y-1/2 w-5 h-5 rounded-full bg-slate-200/90 hover:bg-slate-300 active:scale-90 text-slate-600 hover:text-slate-900 flex items-center justify-center transition-all cursor-pointer z-10 shadow-2xs"
                 title="Xóa tìm kiếm"
               >
                 <X className="w-3 h-3 stroke-[2.5]" />
@@ -486,45 +430,101 @@ export default function ProductsPage() {
             )}
           </div>
 
-          {/* Sort */}
-          <div className="sm:w-52 shrink-0">
-            <Select onValueChange={(v) => { setSortKey(v as SortKey); setPage(1); }} value={sortKey}>
-              <SelectTrigger className="rounded-xl bg-white border border-slate-200 hover:border-slate-300 text-slate-700 text-xs sm:text-sm h-10 shadow-2xs transition-all px-3">
-                <ArrowUpDown className="w-3.5 h-3.5 mr-1.5 text-slate-400 shrink-0" />
-                <SelectValue placeholder="Sắp xếp" />
+          {/* Filter button */}
+          <button
+            type="button"
+            onClick={() => {
+              if (selectedCategory !== "all" || search) {
+                setSelectedCategory("all");
+                setSearch("");
+                setSortKey("newest");
+              } else {
+                inputRef.current?.focus();
+              }
+            }}
+            className="w-12 h-12 rounded-2xl bg-[#5B5DFE] hover:bg-[#4d4ff0] active:scale-95 text-white flex items-center justify-center shrink-0 shadow-sm transition-all cursor-pointer"
+            title="Bộ lọc"
+            aria-label="Bộ lọc"
+          >
+            <SlidersHorizontal className="w-5 h-5" />
+          </button>
+        </div>
+
+        {/* CATEGORY PILLS (Flex wrap - không scroll ngang, có icon trước mỗi tab) */}
+        <div className="flex flex-wrap items-center gap-2 py-1">
+          {CATEGORY_PILLS.map((pill) => {
+            const Icon = pill.icon;
+            const isActive = selectedCategory === pill.id;
+            return (
+              <button
+                key={pill.id}
+                type="button"
+                onClick={() => {
+                  setSelectedCategory(pill.id);
+                  setPage(1);
+                }}
+                className={`inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl sm:rounded-full text-xs sm:text-sm font-semibold shrink-0 transition-all cursor-pointer select-none ${
+                  isActive
+                    ? "bg-[#5B5DFE] text-white shadow-xs"
+                    : "bg-white text-slate-700 hover:text-slate-900 hover:bg-slate-50 border border-slate-200/90 shadow-2xs"
+                }`}
+              >
+                <Icon
+                  className={`w-3.5 h-3.5 sm:w-4 sm:h-4 shrink-0 transition-colors ${
+                    isActive
+                      ? "text-white"
+                      : pill.id === "sale"
+                      ? "text-rose-500"
+                      : "text-slate-500"
+                  }`}
+                />
+                <span>{pill.label}</span>
+              </button>
+            );
+          })}
+        </div>
+
+        {/* COUNT & SORT BAR */}
+        <div className="flex items-center justify-between pt-1">
+          <div className="flex items-center gap-2">
+            <span className="text-sm font-semibold text-slate-600">
+              {filteredData.length} tài khoản
+            </span>
+            {(search || selectedCategory !== "all" || sortKey !== "newest") && (
+              <button
+                type="button"
+                onClick={() => {
+                  setSearch("");
+                  setSelectedCategory("all");
+                  setSortKey("newest");
+                  setPage(1);
+                }}
+                className="text-xs text-[#5B5DFE] hover:underline font-bold flex items-center gap-1 cursor-pointer transition-colors"
+              >
+                <RotateCcw className="w-3 h-3" />
+                <span>Đặt lại</span>
+              </button>
+            )}
+          </div>
+
+          <div className="shrink-0">
+            <Select
+              onValueChange={(v) => {
+                setSortKey(v as SortKey);
+                setPage(1);
+              }}
+              value={sortKey}
+            >
+              <SelectTrigger className="h-9 px-3 rounded-xl bg-white border border-slate-200 hover:border-slate-300 text-slate-800 text-xs sm:text-sm font-semibold shadow-2xs transition-all gap-1.5 focus:ring-0">
+                <SelectValue placeholder="Đề xuất" />
               </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="newest">Mới nhất</SelectItem>
+              <SelectContent align="end">
+                <SelectItem value="newest">Đề xuất</SelectItem>
                 <SelectItem value="price_asc">Giá: Thấp → Cao</SelectItem>
                 <SelectItem value="price_desc">Giá: Cao → Thấp</SelectItem>
               </SelectContent>
             </Select>
           </div>
-        </div>
-
-        {/* STATUS BAR: KẾT QUẢ TÌM KIẾM & NÚT ĐẶT LẠI */}
-        <div className="flex items-center justify-between text-xs text-slate-500 px-1 pt-0.5">
-          <div className="flex items-center gap-1.5">
-            <span>Hiển thị</span>
-            <strong className="text-slate-800 font-bold">{filteredData.length}</strong>
-            <span>tài khoản phù hợp</span>
-          </div>
-
-          {(search || selectedCategory !== "all" || sortKey !== "newest") && (
-            <button
-              type="button"
-              onClick={() => {
-                setSearch("");
-                setSelectedCategory("all");
-                setSortKey("newest");
-                setPage(1);
-              }}
-              className="text-xs text-blue-600 hover:text-blue-800 font-bold flex items-center gap-1 hover:underline cursor-pointer transition-colors"
-            >
-              <RotateCcw className="w-3 h-3" />
-              <span>Đặt lại bộ lọc</span>
-            </button>
-          )}
         </div>
 
         {/* GRID SẢN PHẨM */}
@@ -571,7 +571,7 @@ export default function ProductsPage() {
                     viewers: item.viewers,
                     is_white: item.is_white,
                   }}
-                  onPreviewImage={(url) => setPreviewImage(url)}
+                  onPreviewImage={(url, it) => setPreviewTarget({ imageUrl: url, item: it || item })}
                 />
               </motion.div>
             ))
@@ -636,11 +636,14 @@ export default function ProductsPage() {
           </div>
         )}
 
+        {/* Khung tư vấn thêm & Action bar */}
+        <ConsultationSection className="mt-6" />
+
       </div>
 
       <ImagePreviewModal
-        imageUrl={previewImage}
-        onClose={() => setPreviewImage(null)}
+        data={previewTarget}
+        onClose={() => setPreviewTarget(null)}
       />
     </div>
   );
