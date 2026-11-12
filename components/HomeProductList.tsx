@@ -9,6 +9,7 @@ import {
   Zap,
   Flame,
   Crown,
+  Sparkles,
 } from "lucide-react";
 import { motion } from "framer-motion";
 import { collection, getDocs } from "firebase/firestore";
@@ -16,54 +17,19 @@ import { db } from "@/lib/firebaseConfig";
 import AccountCard, { AccountCardData } from "./AccountCard";
 import ImagePreviewModal from "./ImagePreviewModal";
 
-export type CategoryKey = "all" | "white" | "lq_under1m" | "lq_1m_3m" | "lq_over3m";
+export type CategoryKey = "all" | "sale" | "white" | "lq_under1m" | "lq_1m_3m" | "lq_over3m";
 
-const CATEGORY_TABS = [
-  {
-    id: "all" as CategoryKey,
-    label: "Tất Cả",
-    icon: Grid,
-    activeClasses: "bg-slate-900 text-white border-slate-900 shadow-md shadow-slate-900/20",
-    inactiveClasses: "bg-slate-100/90 hover:bg-slate-200 text-slate-700 border-slate-200",
-    badgeActive: "bg-white/25 text-white",
-    badgeInactive: "bg-white text-slate-600 border border-slate-200/80",
-  },
-  {
-    id: "white" as CategoryKey,
-    label: "Acc Trắng TT",
-    icon: ShieldCheck,
-    activeClasses: "bg-emerald-600 text-white border-emerald-600 shadow-md shadow-emerald-600/25",
-    inactiveClasses: "bg-emerald-50 hover:bg-emerald-100/80 text-emerald-800 border-emerald-200/90",
-    badgeActive: "bg-white/25 text-white",
-    badgeInactive: "bg-white text-emerald-700 border border-emerald-200/80",
-  },
-  {
-    id: "lq_under1m" as CategoryKey,
-    label: "Acc LQ < 1M",
-    icon: Zap,
-    activeClasses: "bg-blue-600 text-white border-blue-600 shadow-md shadow-blue-600/25",
-    inactiveClasses: "bg-blue-50 hover:bg-blue-100/80 text-blue-800 border-blue-200/90",
-    badgeActive: "bg-white/25 text-white",
-    badgeInactive: "bg-white text-blue-700 border border-blue-200/80",
-  },
-  {
-    id: "lq_1m_3m" as CategoryKey,
-    label: "Acc LQ 1M–3M",
-    icon: Flame,
-    activeClasses: "bg-violet-600 text-white border-violet-600 shadow-md shadow-violet-600/25",
-    inactiveClasses: "bg-violet-50 hover:bg-violet-100/80 text-violet-800 border-violet-200/90",
-    badgeActive: "bg-white/25 text-white",
-    badgeInactive: "bg-white text-violet-700 border border-violet-200/80",
-  },
-  {
-    id: "lq_over3m" as CategoryKey,
-    label: "Acc VIP 3M+",
-    icon: Crown,
-    activeClasses: "bg-amber-500 text-white border-amber-500 shadow-md shadow-amber-500/25",
-    inactiveClasses: "bg-amber-50 hover:bg-amber-100/80 text-amber-800 border-amber-200/90",
-    badgeActive: "bg-white/25 text-white",
-    badgeInactive: "bg-white text-amber-700 border border-amber-200/80",
-  },
+export const CATEGORY_PILLS: {
+  id: CategoryKey;
+  label: string;
+  icon: React.ComponentType<{ className?: string }>;
+}[] = [
+  { id: "all", label: "Tất cả", icon: Grid },
+  { id: "sale", label: "Sale", icon: Flame },
+  { id: "white", label: "Trắng TT", icon: ShieldCheck },
+  { id: "lq_under1m", label: "Dưới 1M", icon: Zap },
+  { id: "lq_1m_3m", label: "1M – 3M", icon: Sparkles },
+  { id: "lq_over3m", label: "Từ 3M+", icon: Crown },
 ];
 
 export type AccItem = AccountCardData & {
@@ -252,6 +218,7 @@ export default function HomeProductList({
                 ? d.is_white
                 : categoryType === "white" || rawCatName.includes("trắng")
             );
+            const isSale = Boolean(d.is_sale);
 
             list.push({
               id: doc.id,
@@ -262,6 +229,7 @@ export default function HomeProductList({
               images,
               categoryType,
               is_white: isWhite,
+              is_sale: isSale,
               viewers,
             });
           });
@@ -286,20 +254,10 @@ export default function HomeProductList({
     onSelectCategory?.(tabId);
   };
 
-  // Đếm số lượng tài khoản theo từng tab
-  const counts = useMemo(() => {
-    return {
-      all: accounts.length,
-      white: accounts.filter((a) => a.categoryType === "white").length,
-      lq_under1m: accounts.filter((a) => a.categoryType === "lq_under1m").length,
-      lq_1m_3m: accounts.filter((a) => a.categoryType === "lq_1m_3m").length,
-      lq_over3m: accounts.filter((a) => a.categoryType === "lq_over3m").length,
-    };
-  }, [accounts]);
-
   // Lọc chuẩn theo tab đang chọn
   const filteredAccounts = useMemo(() => {
     if (currentTab === "all") return accounts;
+    if (currentTab === "sale") return accounts.filter((item) => item.is_sale);
     return accounts.filter((item) => item.categoryType === currentTab);
   }, [accounts, currentTab]);
 
@@ -328,43 +286,37 @@ export default function HomeProductList({
           </Link>
         </div>
 
-        {/* CATEGORY TABS — Đồng bộ 100% với trang Danh Sách Tài Khoản */}
-        <div className="grid grid-cols-2 sm:grid-cols-5 gap-2 mb-4 sm:mb-6">
-          {CATEGORY_TABS.map((tab, i) => {
-            const Icon = tab.icon;
-            const isActive = currentTab === tab.id;
-            const count = counts[tab.id as CategoryKey] || 0;
+        {/* CATEGORY PILLS — Đồng bộ 100% với Style của Kho Acc */}
+        <div className="flex flex-wrap items-center gap-2 mb-4 sm:mb-6">
+          {CATEGORY_PILLS.map((pill) => {
+            const Icon = pill.icon;
+            const isActive = currentTab === pill.id;
 
             return (
-              <motion.button
-                key={tab.id}
-                initial={{ opacity: 0, y: 6 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: i * 0.03, duration: 0.2 }}
-                whileTap={{ scale: 0.97 }}
+              <button
+                key={pill.id}
                 type="button"
                 onClick={(e) => {
                   e.preventDefault();
-                  handleTabChange(tab.id);
+                  handleTabChange(pill.id);
                 }}
-                className={`relative w-full py-2.5 px-3 rounded-xl sm:rounded-2xl text-xs font-bold transition-all duration-200 cursor-pointer touch-manipulation select-none flex items-center justify-between gap-1.5 border ${
+                className={`inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl sm:rounded-full text-xs sm:text-sm font-semibold shrink-0 transition-all cursor-pointer select-none ${
                   isActive
-                    ? `${tab.activeClasses} scale-[1.01]`
-                    : `${tab.inactiveClasses}`
+                    ? "bg-[#5B5DFE] text-white shadow-xs scale-[1.01]"
+                    : "bg-white text-slate-700 hover:text-slate-900 hover:bg-slate-50 border border-slate-200/90 shadow-2xs"
                 }`}
               >
-                <div className="flex items-center gap-1.5 sm:gap-2 truncate">
-                  <Icon className="w-4 h-4 shrink-0" />
-                  <span className="truncate">{tab.label}</span>
-                </div>
-                <span
-                  className={`text-[10px] sm:text-[11px] px-1.5 sm:px-2 py-0.5 rounded-full font-bold shrink-0 transition-colors ${
-                    isActive ? tab.badgeActive : tab.badgeInactive
+                <Icon
+                  className={`w-3.5 h-3.5 sm:w-4 sm:h-4 shrink-0 transition-colors ${
+                    isActive
+                      ? "text-white"
+                      : pill.id === "sale"
+                      ? "text-rose-500"
+                      : "text-slate-500"
                   }`}
-                >
-                  {count}
-                </span>
-              </motion.button>
+                />
+                <span>{pill.label}</span>
+              </button>
             );
           })}
         </div>
