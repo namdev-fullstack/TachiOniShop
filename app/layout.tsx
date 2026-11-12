@@ -1,10 +1,17 @@
 import './globals.css';
-import type { Metadata } from 'next';
+import type { Metadata, Viewport } from 'next';
 import { Inter } from 'next/font/google';
 import MaintenancePage from '@/components/MaintenancePage';
 import SiteLayoutWrapper from '@/components/SiteLayoutWrapper';
 
 const inter = Inter({ subsets: ['latin'] });
+
+export const viewport: Viewport = {
+  width: 'device-width',
+  initialScale: 1,
+  maximumScale: 1,
+  userScalable: false,
+};
 
 export const metadata: Metadata = {
   title: 'Dịch vụ hỗ trợ nâng cấp Acc',

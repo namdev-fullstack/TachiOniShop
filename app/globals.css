@@ -637,6 +637,25 @@ a:focus-visible {
     inset 0 1px 0 0 rgba(255, 255, 255, 1);
 }
 
+/* ==========================================================================
+   CHỐNG AUTO-ZOOM MÀN HÌNH TRÊN MOBILE / IOS SAFARI KHI FOCUS VÀO INPUT
+   ========================================================================== */
+@media screen and (max-width: 768px) {
+  input,
+  select,
+  textarea,
+  input[type="text"],
+  input[type="search"],
+  input[type="number"],
+  input[type="password"],
+  input[type="email"],
+  input[type="tel"],
+  input[type="url"] {
+    font-size: 16px !important;
+  }
+}
+
+
 
 
 
