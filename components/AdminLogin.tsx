@@ -124,7 +124,7 @@ export function useAdminAuth() {
       cachedProfile = userProf;
       hasInitialAuthChecked = true;
       toast.success("Đăng nhập thành công", {
-        description: `Chào mừng ${userProf.role === "admin" ? "Quản trị viên" : "Nhân viên"}: ${userProf.name}!`,
+        description: `Chào mừng ${userProf.role === "admin" ? "Quản trị viên" : "Cộng tác viên"}: ${userProf.name}!`,
       });
       return true;
     } catch (error: any) {
@@ -162,7 +162,7 @@ export function useAdminAuth() {
       setProfile(userProfile);
 
       toast.success("Đăng ký tài khoản thành công!", {
-        description: `Tài khoản vai trò: ${role === "admin" ? "Quản trị viên" : "Nhân viên"}`,
+        description: `Tài khoản vai trò: ${role === "admin" ? "Quản trị viên" : "Cộng tác viên"}`,
       });
       return true;
     } catch (error: any) {
@@ -246,7 +246,7 @@ export default function AdminLogin() {
             </CardTitle>
           </div>
           <CardDescription className="text-indigo-100 text-center text-xs">
-            Đăng nhập dành cho Quản trị viên & Nhân viên
+            Đăng nhập dành cho Quản trị viên & Cộng tác viên
           </CardDescription>
         </CardHeader>
 
@@ -298,7 +298,7 @@ export default function AdminLogin() {
 
             <div className="pt-3 border-t border-slate-100 text-center space-y-2">
               <p className="text-[11px] text-slate-500">
-                🔒 Tài khoản nhân viên được cấp trực tiếp bởi <strong>Quản trị viên (Admin)</strong>.
+                🔒 Tài khoản cộng tác viên được cấp trực tiếp bởi <strong>Quản trị viên (Admin)</strong>.
               </p>
               <div>
                 <a

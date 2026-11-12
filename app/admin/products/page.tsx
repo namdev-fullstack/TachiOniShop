@@ -33,6 +33,7 @@ import {
   Shield,
   Filter,
   TrendingUp,
+  Percent,
 } from "lucide-react";
 import Link from "next/link";
 import { matchAccountFuzzy } from "@/lib/searchUtils";
@@ -40,6 +41,7 @@ import ImageLightbox, { useImageLightbox } from "@/components/ImageLightbox";
 import AdminAuthWrapper from "@/components/AdminAuthWrapper";
 import { useAdminAuth } from "@/components/AdminLogin";
 import { formatVND } from "@/lib/priceUtils";
+import PricingConfigModal from "@/components/PricingConfigModal";
 
 type Product = {
   id: string;
@@ -83,6 +85,7 @@ export default function AdminProductsPage() {
   // State cho modal xác nhận xóa
   const [deleteProductTarget, setDeleteProductTarget] = useState<Product | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
+  const [pricingModalOpen, setPricingModalOpen] = useState(false);
 
   const textMeasureRef = useRef<HTMLSpanElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
@@ -145,9 +148,20 @@ export default function AdminProductsPage() {
 
     // Phân quyền: Nhân viên chỉ thấy và CRUD sản phẩm của chính mình
     if (isStaff && user) {
-      result = result.filter(
-        (product) => product.seller_id === user.uid || product.seller_email === user.email
-      );
+      result = result.filter((product) => {
+        const uidMatch = Boolean(product.seller_id && product.seller_id === user.uid);
+        const emailMatch = Boolean(
+          product.seller_email &&
+          user.email &&
+          product.seller_email.toLowerCase() === user.email.toLowerCase()
+        );
+        const nameMatch = Boolean(
+          profile?.name &&
+          product.seller_name &&
+          product.seller_name.trim().toLowerCase() === profile.name.trim().toLowerCase()
+        );
+        return uidMatch || emailMatch || nameMatch;
+      });
     } else if (isAdmin && selectedSeller !== "all") {
       // Admin filter theo người bán
       result = result.filter(
@@ -268,17 +282,30 @@ export default function AdminProductsPage() {
                 </CardTitle>
                 <p className="text-xs text-indigo-100 mt-1">
                   {isAdmin
-                    ? `Hiển thị giá thật, giá bán trên Web (+%) và tên nhân viên đăng acc.`
+                    ? `Hiển thị giá thật, giá bán trên Web (+%) và tên cộng tác viên đăng acc.`
                     : `Bạn chỉ có quyền xem, chỉnh sửa và quản lý sản phẩm do chính bạn đăng.`}
                 </p>
               </div>
 
-              <Link href="/admin">
-                <Button className="bg-white text-indigo-700 hover:bg-indigo-50 font-bold shadow-md cursor-pointer text-xs sm:text-sm">
-                  <Plus className="w-4 h-4 mr-1.5" />
-                  Đăng sản phẩm mới
-                </Button>
-              </Link>
+              <div className="flex items-center gap-2 flex-wrap">
+                {isAdmin && (
+                  <Button
+                    onClick={() => setPricingModalOpen(true)}
+                    variant="outline"
+                    className="bg-white/10 hover:bg-white/20 text-white border-white/20 font-bold shadow-md cursor-pointer text-xs sm:text-sm backdrop-blur-xs"
+                  >
+                    <Percent className="w-4 h-4 mr-1.5" />
+                    Cấu hình % tăng giá
+                  </Button>
+                )}
+
+                <Link href="/admin">
+                  <Button className="bg-white text-indigo-700 hover:bg-indigo-50 font-bold shadow-md cursor-pointer text-xs sm:text-sm">
+                    <Plus className="w-4 h-4 mr-1.5" />
+                    Đăng sản phẩm mới
+                  </Button>
+                </Link>
+              </div>
             </div>
           </CardHeader>
 
@@ -299,7 +326,7 @@ export default function AdminProductsPage() {
 
                 <Input
                   ref={inputRef}
-                  placeholder="Tìm theo #mã code, tiêu đề hoặc tên nhân viên..."
+                  placeholder="Tìm theo #mã code, tiêu đề hoặc tên cộng tác viên..."
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
                   className="pl-9 pr-10 text-sm h-10 border-slate-200"
@@ -353,7 +380,7 @@ export default function AdminProductsPage() {
                     <TableHead className="font-bold text-slate-800 text-xs">Tiêu đề</TableHead>
                     {isAdmin && (
                       <TableHead className="font-bold text-slate-800 text-xs">
-                        Người đăng (Nhân viên)
+                        Người đăng (Cộng tác viên)
                       </TableHead>
                     )}
                     <TableHead className="font-bold text-slate-800 text-xs">
@@ -454,7 +481,7 @@ export default function AdminProductsPage() {
                                   ) : (
                                     <User className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
                                   )}
-                                  <span>{product.seller_name || (isSellerAdmin ? "Admin" : "Nhân viên")}</span>
+                                  <span>{product.seller_name || (isSellerAdmin ? "Admin" : "Cộng tác viên")}</span>
                                 </div>
                                 <span
                                   className={`inline-block px-1.5 py-0.2 text-[10px] rounded font-semibold w-fit ${
@@ -463,7 +490,7 @@ export default function AdminProductsPage() {
                                       : "bg-emerald-100 text-emerald-700"
                                   }`}
                                 >
-                                  {isSellerAdmin ? "Quản trị viên" : "Nhân viên"}
+                                  {isSellerAdmin ? "Quản trị viên" : "Cộng tác viên"}
                                 </span>
                               </div>
                             </TableCell>
@@ -655,6 +682,16 @@ export default function AdminProductsPage() {
           onClose={closeLightbox}
           initialIndex={currentIndex}
         />
+
+        {/* Modal cấu hình mốc % tăng giá (Chỉ Admin mới có quyền mở & thao tác) */}
+        {isAdmin && (
+          <PricingConfigModal
+            isOpen={pricingModalOpen}
+            onClose={() => setPricingModalOpen(false)}
+            onUpdateSuccess={fetchProducts}
+            isAdmin={isAdmin}
+          />
+        )}
       </div>
     </AdminAuthWrapper>
   );

@@ -58,23 +58,33 @@ import {
   UserPlus,
   RefreshCw,
   Mail,
+  KeyRound,
+  Trash2,
   Eye,
   EyeOff,
-  Trash2,
   Search,
-  KeyRound,
-  Percent,
 } from "lucide-react";
 import AdminAuthWrapper from "@/components/AdminAuthWrapper";
-import { useAdminAuth, UserProfile, UserRole } from "@/components/AdminLogin";
+import { useAdminAuth } from "@/components/AdminLogin";
+
+type UserRole = "admin" | "staff";
+
+interface UserProfile {
+  uid: string;
+  email: string;
+  name: string;
+  role: UserRole;
+  created_at?: any;
+}
 
 export default function AdminUsersPage() {
   const { user, isAdmin, loading: authLoading } = useAdminAuth();
+
   const [usersList, setUsersList] = useState<UserProfile[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
 
-  // Create employee state
+  // Create user state
   const [isCreateOpen, setIsCreateOpen] = useState(false);
   const [newEmail, setNewEmail] = useState("");
   const [newName, setNewName] = useState("");
@@ -118,13 +128,13 @@ export default function AdminUsersPage() {
     }
   }, [isAdmin]);
 
-  // Tạo nhân viên mới bằng Gmail, Tên và Mật khẩu (Chỉ Admin mới có quyền)
+  // Tạo cộng tác viên mới bằng Gmail, Tên và Mật khẩu (Chỉ Admin mới có quyền)
   const handleCreateEmployee = async (e: React.FormEvent) => {
     e.preventDefault();
 
     // Kiểm tra quyền Admin nghiêm ngặt
     if (!isAdmin) {
-      toast.error("Chỉ có Quản trị viên (Admin) mới có quyền tạo nhân viên!");
+      toast.error("Chỉ có Quản trị viên (Admin) mới có quyền tạo cộng tác viên!");
       return;
     }
 
@@ -144,7 +154,7 @@ export default function AdminUsersPage() {
     }
 
     if (!trimmedName) {
-      toast.error("Vui lòng nhập tên nhân viên");
+      toast.error("Vui lòng nhập tên cộng tác viên");
       return;
     }
 
@@ -170,7 +180,7 @@ export default function AdminUsersPage() {
       );
       const createdUser = userCredential.user;
 
-      // Lưu hồ sơ nhân viên vào collection 'users' trên Firestore
+      // Lưu hồ sơ cộng tác viên vào collection 'users' trên Firestore
       const newProfile: UserProfile = {
         uid: createdUser.uid,
         email: trimmedEmail,
@@ -184,8 +194,8 @@ export default function AdminUsersPage() {
       // Sign out khỏi secondaryAuth
       await signOut(secondaryAuth);
 
-      toast.success(`Tạo nhân viên "${trimmedName}" thành công! 🎉`, {
-        description: `Tài khoản: ${trimmedEmail} (${newRole === "admin" ? "Admin" : "Nhân viên"})`,
+      toast.success(`Tạo cộng tác viên "${trimmedName}" thành công! 🎉`, {
+        description: `Tài khoản: ${trimmedEmail} (${newRole === "admin" ? "Admin" : "Cộng tác viên"})`,
       });
 
       // Reset form & close dialog
@@ -196,11 +206,11 @@ export default function AdminUsersPage() {
       setShowPassword(false);
       setIsCreateOpen(false);
 
-      // Cập nhật lại danh sách nhân viên
+      // Cập nhật lại danh sách cộng tác viên
       await fetchUsers();
     } catch (error: any) {
       console.error("Error creating employee:", error);
-      let message = "Không thể tạo tài khoản nhân viên";
+      let message = "Không thể tạo tài khoản cộng tác viên";
       if (error?.code === "auth/email-already-in-use") {
         message = "Gmail / Email này đã được đăng ký tài khoản trước đó!";
       } else if (error?.code === "auth/weak-password") {
@@ -226,7 +236,7 @@ export default function AdminUsersPage() {
   // Open modal edit
   const handleOpenEdit = (targetUser: UserProfile) => {
     if (!isAdmin) {
-      toast.error("Chỉ Admin mới có quyền chỉnh sửa tài khoản nhân viên!");
+      toast.error("Chỉ Admin mới có quyền chỉnh sửa tài khoản cộng tác viên!");
       return;
     }
     setEditingUser(targetUser);
@@ -242,7 +252,7 @@ export default function AdminUsersPage() {
     }
     if (!editingUser) return;
     if (!editName.trim()) {
-      toast.error("Vui lòng nhập tên nhân viên");
+      toast.error("Vui lòng nhập tên cộng tác viên");
       return;
     }
 
@@ -295,7 +305,7 @@ export default function AdminUsersPage() {
 
       toast.success(
         `Đã đổi quyền của ${targetUser.name || targetUser.email} thành ${
-          newTargetRole === "admin" ? "Quản trị viên (Admin)" : "Nhân viên (Staff)"
+          newTargetRole === "admin" ? "Quản trị viên (Admin)" : "Cộng tác viên (CTV)"
         }`
       );
     } catch (error) {
@@ -304,10 +314,10 @@ export default function AdminUsersPage() {
     }
   };
 
-  // Xóa tài khoản nhân viên khỏi Firestore
+  // Xóa tài khoản cộng tác viên khỏi Firestore
   const handleDeleteUser = async () => {
     if (!isAdmin) {
-      toast.error("Chỉ Admin mới có quyền xóa tài khoản nhân viên!");
+      toast.error("Chỉ Admin mới có quyền xóa tài khoản cộng tác viên!");
       return;
     }
     if (!deletingUser) return;
@@ -323,17 +333,17 @@ export default function AdminUsersPage() {
       await deleteDoc(doc(db, "users", deletingUser.uid));
 
       setUsersList((prev) => prev.filter((u) => u.uid !== deletingUser.uid));
-      toast.success(`Đã xóa tài khoản nhân viên ${deletingUser.name || deletingUser.email}!`);
+      toast.success(`Đã xóa tài khoản cộng tác viên ${deletingUser.name || deletingUser.email}!`);
       setDeletingUser(null);
     } catch (error) {
       console.error("Error deleting user:", error);
-      toast.error("Lỗi xóa tài khoản nhân viên");
+      toast.error("Lỗi xóa tài khoản cộng tác viên");
     } finally {
       setIsDeleting(false);
     }
   };
 
-  // Lọc danh sách nhân viên theo từ khóa tìm kiếm
+  // Lọc danh sách cộng tác viên theo từ khóa tìm kiếm
   const filteredUsers = useMemo(() => {
     const q = searchQuery.toLowerCase().trim();
     if (!q) return usersList;
@@ -362,7 +372,7 @@ export default function AdminUsersPage() {
           <ShieldAlert className="w-14 h-14 text-red-500 mx-auto mb-3" />
           <h2 className="text-xl font-bold text-slate-900">Không có quyền truy cập</h2>
           <p className="text-sm text-slate-500 mt-2 leading-relaxed">
-            Trang này chỉ dành riêng cho <strong>Quản trị viên (Admin)</strong> để tạo và quản lý tài khoản nhân viên.
+            Trang này chỉ dành riêng cho <strong>Quản trị viên (Admin)</strong> để tạo và quản lý tài khoản cộng tác viên.
           </p>
         </div>
       </AdminAuthWrapper>
@@ -378,10 +388,10 @@ export default function AdminUsersPage() {
               <div>
                 <CardTitle className="text-lg sm:text-2xl font-black flex items-center gap-2">
                   <Users className="w-5 h-5 sm:w-6 sm:h-6 text-yellow-300" />
-                  Quản lý nhân viên & Phân quyền Role
+                  Quản lý Cộng tác viên & Phân quyền Role
                 </CardTitle>
                 <CardDescription className="text-xs text-indigo-100 mt-1">
-                  Chỉ Quản trị viên (Admin) mới có quyền tạo và quản lý tài khoản nhân viên.
+                  Chỉ Quản trị viên (Admin) mới có quyền tạo và quản lý tài khoản cộng tác viên.
                 </CardDescription>
               </div>
 
@@ -392,7 +402,7 @@ export default function AdminUsersPage() {
                   className="flex-1 sm:flex-none bg-yellow-400 hover:bg-yellow-500 text-slate-950 font-bold text-xs shadow-md transition-all cursor-pointer h-9"
                 >
                   <UserPlus className="w-4 h-4 mr-1.5" />
-                  Tạo nhân viên mới
+                  Tạo cộng tác viên mới
                 </Button>
 
                 <Button
@@ -418,7 +428,7 @@ export default function AdminUsersPage() {
               </span>
               <span className="bg-white/15 px-2.5 py-1 rounded-full font-semibold flex items-center gap-1">
                 <User className="w-3 h-3 text-emerald-300" />
-                Nhân viên: <strong className="text-emerald-300">{staffCount}</strong>
+                Cộng tác viên (CTV): <strong className="text-emerald-300">{staffCount}</strong>
               </span>
             </div>
           </CardHeader>
@@ -445,7 +455,7 @@ export default function AdminUsersPage() {
             ) : filteredUsers.length === 0 ? (
               <div className="py-12 text-center text-slate-500 text-sm">
                 {searchQuery
-                  ? "Không tìm thấy nhân viên phù hợp với từ khóa tìm kiếm."
+                  ? "Không tìm thấy cộng tác viên phù hợp với từ khóa tìm kiếm."
                   : "Chưa có tài khoản nào được lưu trong cơ sở dữ liệu."}
               </div>
             ) : (
@@ -497,17 +507,7 @@ export default function AdminUsersPage() {
                                 : "bg-emerald-100 text-emerald-800 border border-emerald-200"
                             }`}
                           >
-                            {isTargetAdmin ? "Admin" : "Nhân viên"}
-                          </span>
-                        </div>
-
-                        {/* Pricing rule info */}
-                        <div className="text-[11px] bg-slate-50 text-slate-600 rounded-lg p-2 flex items-center gap-1.5">
-                          <Percent className="w-3.5 h-3.5 text-slate-400 shrink-0" />
-                          <span>
-                            {isTargetAdmin
-                              ? "Toàn quyền, không tính % chênh lệch khi đăng"
-                              : "Đăng acc: <1tr (+30%) | ≥1tr (+25%)"}
+                            {isTargetAdmin ? "Admin" : "Cộng tác viên"}
                           </span>
                         </div>
 
@@ -531,7 +531,7 @@ export default function AdminUsersPage() {
                                 onClick={() => handleToggleRole(u)}
                                 className="text-xs h-8 text-slate-600 hover:text-indigo-600 cursor-pointer"
                               >
-                                Đổi thành {isTargetAdmin ? "Staff" : "Admin"}
+                                Đổi thành {isTargetAdmin ? "Cộng tác viên" : "Admin"}
                               </Button>
 
                               <Button
@@ -550,15 +550,14 @@ export default function AdminUsersPage() {
                   })}
                 </div>
 
-                {/* 2. Desktop Table View (Hiển thị trên màn hình >= md) */}
+                {/* 2. Desktop Table View (Hiển thị trên màn hình >= md) - ĐÃ BỎ CỘT QUY TẮC ĐĂNG ACC */}
                 <div className="hidden md:block rounded-xl border border-slate-200 overflow-x-auto bg-white">
-                  <Table className="min-w-[700px]">
+                  <Table className="min-w-[600px]">
                     <TableHeader>
                       <TableRow className="bg-slate-50 hover:bg-slate-50">
-                        <TableHead className="font-bold text-slate-800 text-xs">Tên nhân viên</TableHead>
+                        <TableHead className="font-bold text-slate-800 text-xs">Tên người dùng</TableHead>
                         <TableHead className="font-bold text-slate-800 text-xs">Gmail / Email</TableHead>
                         <TableHead className="font-bold text-slate-800 text-xs">Vai trò (Role)</TableHead>
-                        <TableHead className="font-bold text-slate-800 text-xs">Quy tắc đăng acc</TableHead>
                         <TableHead className="font-bold text-slate-800 text-xs text-right">
                           Hành động
                         </TableHead>
@@ -599,20 +598,8 @@ export default function AdminUsersPage() {
                                     : "bg-emerald-100 text-emerald-800 border border-emerald-200"
                                 }`}
                               >
-                                {isTargetAdmin ? "Quản trị viên (Admin)" : "Nhân viên (Staff)"}
+                                {isTargetAdmin ? "Quản trị viên (Admin)" : "Cộng tác viên (CTV)"}
                               </span>
-                            </TableCell>
-
-                            <TableCell className="text-xs text-slate-600">
-                              {isTargetAdmin ? (
-                                <span className="text-purple-700 font-medium">
-                                  Không tăng % khi đăng acc mới
-                                </span>
-                              ) : (
-                                <span className="text-emerald-700 font-medium">
-                                  &lt;1tr: +30% | ≥1tr: +25%
-                                </span>
-                              )}
                             </TableCell>
 
                             <TableCell className="text-right">
@@ -635,7 +622,7 @@ export default function AdminUsersPage() {
                                       onClick={() => handleToggleRole(u)}
                                       className="text-xs h-8 text-slate-600 hover:text-indigo-600 hover:bg-slate-100 cursor-pointer"
                                     >
-                                      Đổi thành {isTargetAdmin ? "Nhân viên" : "Admin"}
+                                      Đổi thành {isTargetAdmin ? "Cộng tác viên" : "Admin"}
                                     </Button>
 
                                     <Button
@@ -643,7 +630,7 @@ export default function AdminUsersPage() {
                                       size="sm"
                                       onClick={() => setDeletingUser(u)}
                                       className="text-xs h-8 text-red-500 hover:text-red-700 hover:bg-red-50 cursor-pointer"
-                                      title="Xóa tài khoản nhân viên"
+                                      title="Xóa tài khoản cộng tác viên"
                                     >
                                       <Trash2 className="w-3.5 h-3.5" />
                                     </Button>
@@ -662,18 +649,18 @@ export default function AdminUsersPage() {
           </CardContent>
         </Card>
 
-        {/* Modal Tạo nhân viên mới */}
+        {/* Modal Tạo cộng tác viên mới */}
         <Dialog open={isCreateOpen} onOpenChange={(open) => !creating && setIsCreateOpen(open)}>
           <DialogContent className="w-[95vw] sm:max-w-md max-h-[90vh] overflow-y-auto p-4 sm:p-6">
             <DialogHeader>
               <div className="flex items-center gap-2 text-indigo-600">
                 <UserPlus className="w-5 h-5" />
                 <DialogTitle className="text-slate-900 font-bold text-base sm:text-lg">
-                  Tạo tài khoản nhân viên mới
+                  Tạo tài khoản cộng tác viên mới
                 </DialogTitle>
               </div>
               <DialogDescription className="text-xs text-slate-500">
-                Chỉ Quản trị viên mới có quyền cấp tài khoản nhân viên bằng Gmail, Tên và Mật khẩu.
+                Chỉ Quản trị viên mới có quyền cấp tài khoản cộng tác viên bằng Gmail, Tên và Mật khẩu.
               </DialogDescription>
             </DialogHeader>
 
@@ -689,7 +676,7 @@ export default function AdminUsersPage() {
                     required
                     value={newEmail}
                     onChange={(e) => setNewEmail(e.target.value)}
-                    placeholder="VD: nhanvien1@gmail.com"
+                    placeholder="VD: ctv1@gmail.com"
                     className="pl-9 text-base sm:text-sm border-slate-200"
                     disabled={creating}
                   />
@@ -698,7 +685,7 @@ export default function AdminUsersPage() {
 
               <div>
                 <Label className="text-xs font-bold text-slate-700">
-                  Họ và tên nhân viên <span className="text-red-500">*</span>
+                  Họ và tên cộng tác viên <span className="text-red-500">*</span>
                 </Label>
                 <div className="relative mt-1">
                   <User className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
@@ -713,7 +700,7 @@ export default function AdminUsersPage() {
                   />
                 </div>
                 <p className="text-[11px] text-slate-400 mt-1">
-                  Tên này sẽ hiển thị ở cột Người đăng khi nhân viên đăng bán acc.
+                  Tên này sẽ hiển thị ở cột Người đăng khi cộng tác viên đăng bán acc.
                 </p>
               </div>
 
@@ -751,8 +738,8 @@ export default function AdminUsersPage() {
                   className="w-full border border-slate-200 p-2.5 rounded-lg mt-1 text-sm bg-white font-medium focus:ring-2 focus:ring-indigo-500 outline-none"
                   disabled={creating}
                 >
-                  <option value="staff">Nhân viên (Staff) - Có tính % chênh lệch khi đăng</option>
-                  <option value="admin">Quản trị viên (Admin) - Toàn quyền, không tính %</option>
+                  <option value="staff">Cộng tác viên (CTV)</option>
+                  <option value="admin">Quản trị viên (Admin)</option>
                 </select>
               </div>
 
@@ -783,7 +770,7 @@ export default function AdminUsersPage() {
           <DialogContent className="w-[95vw] sm:max-w-md max-h-[90vh] overflow-y-auto p-4 sm:p-6">
             <DialogHeader>
               <DialogTitle className="text-slate-900 font-bold">
-                Chỉnh sửa tài khoản nhân viên
+                Chỉnh sửa tài khoản cộng tác viên
               </DialogTitle>
               <DialogDescription className="text-xs text-slate-500">
                 Email: <span className="font-mono font-semibold">{editingUser?.email}</span>
@@ -793,12 +780,12 @@ export default function AdminUsersPage() {
             <div className="space-y-4 py-2">
               <div>
                 <Label className="text-xs font-bold text-slate-700">
-                  Tên hiển thị nhân viên
+                  Tên hiển thị cộng tác viên
                 </Label>
                 <Input
                   value={editName}
                   onChange={(e) => setEditName(e.target.value)}
-                  placeholder="VD: Tuấn Nhân Viên..."
+                  placeholder="VD: Tuấn CTV..."
                   className="mt-1 text-base sm:text-sm border-slate-200"
                 />
                 <p className="text-[11px] text-slate-400 mt-1">
@@ -813,8 +800,8 @@ export default function AdminUsersPage() {
                   onChange={(e) => setEditRole(e.target.value as UserRole)}
                   className="w-full border border-slate-200 p-2.5 rounded-lg mt-1 text-sm bg-white font-medium focus:ring-2 focus:ring-indigo-500 outline-none"
                 >
-                  <option value="staff">Nhân viên (Staff) - Có tính % chênh lệch khi đăng</option>
-                  <option value="admin">Quản trị viên (Admin) - Toàn quyền, không tính %</option>
+                  <option value="staff">Cộng tác viên (CTV)</option>
+                  <option value="admin">Quản trị viên (Admin)</option>
                 </select>
               </div>
             </div>
@@ -839,16 +826,16 @@ export default function AdminUsersPage() {
           </DialogContent>
         </Dialog>
 
-        {/* Modal xác nhận xóa nhân viên */}
+        {/* Modal xác nhận xóa cộng tác viên */}
         <AlertDialog open={!!deletingUser} onOpenChange={(open) => !open && setDeletingUser(null)}>
           <AlertDialogContent className="w-[95vw] sm:max-w-lg">
             <AlertDialogHeader>
               <AlertDialogTitle className="text-red-600 flex items-center gap-2 text-base sm:text-lg">
                 <Trash2 className="w-5 h-5" />
-                Xác nhận xóa tài khoản nhân viên
+                Xác nhận xóa tài khoản cộng tác viên
               </AlertDialogTitle>
               <AlertDialogDescription className="text-xs sm:text-sm">
-                Bạn có chắc chắn muốn xóa tài khoản của nhân viên{" "}
+                Bạn có chắc chắn muốn xóa tài khoản của cộng tác viên{" "}
                 <strong className="text-slate-900">
                   {deletingUser?.name} ({deletingUser?.email})
                 </strong>{" "}

@@ -238,25 +238,8 @@ export default function FlashSale() {
   }, [items]);
 
   return (
-    <section className="w-full py-4 sm:py-8 md:py-10">
+    <section className="w-full py-2 sm:py-3 md:py-4">
       <div className="max-w-7xl mx-auto px-2.5 sm:px-6 lg:px-8">
-
-        {/* Section Header đồng bộ với các section khác */}
-        <div className="flex items-center justify-between gap-3 pb-3 sm:pb-4 border-b border-slate-200/80 mb-4 sm:mb-6">
-          <div className="border-l-4 border-red-600 pl-2.5 sm:pl-3">
-            <h2 className="text-3d-heading text-base sm:text-xl md:text-2xl font-black text-slate-900 tracking-tight uppercase leading-none">
-              Ưu Đãi Hôm Nay
-            </h2>
-          </div>
-
-          <Link
-            href="/products"
-            className="inline-flex items-center gap-1 text-xs sm:text-sm font-semibold text-slate-600 hover:text-red-600 transition-colors group shrink-0"
-          >
-            <span>Xem tất cả</span>
-            <ChevronRight className="w-3.5 h-3.5 group-hover:translate-x-0.5 transition-transform" />
-          </Link>
-        </div>
 
         {/* CONTAINER FLASH SALE DẠNG STRIP SANG TRỌNG VỚI NỀN CHUYỂN ĐỘNG NHẸ NHÀNG (ĐÃ BỎ BÓNG NGOÀI BORDER) */}
         <div className="rounded-2xl sm:rounded-3xl border border-red-200/90 bg-animated-flashsale overflow-hidden p-3 sm:p-5 md:p-6 shadow-none">

@@ -125,10 +125,10 @@ export default function Home() {
         </div>
       </section>
 
-      {/* 4. Flash Sale (Giữ nguyên component và logic) */}
+      {/* 4. Flash Sale (Ưu đãi) */}
       <FlashSale />
 
-      {/* 5. Phân loại thể loại / Tab (Giữ nguyên) */}
+      {/* 5. Phân loại thể loại / Tab */}
       <HomeCategories
         selectedCategory={activeCategory}
         onSelectCategory={setActiveCategory}

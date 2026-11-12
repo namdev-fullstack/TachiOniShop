@@ -22,6 +22,7 @@ import {
 import ImageLightbox, { useImageLightbox } from "@/components/ImageLightbox";
 import { useAdminAuth } from "@/components/AdminLogin";
 import { calculateAccountPrice, formatVND } from "@/lib/priceUtils";
+import { usePricingTiers } from "@/hooks/usePricingTiers";
 
 const CLOUD_NAME = process.env.NEXT_PUBLIC_CLOUD_NAME!;
 const UPLOAD_PRESET = process.env.NEXT_PUBLIC_UPLOAD_PRESET!;
@@ -86,11 +87,12 @@ export default function CreateProductForm() {
   const [preview, setPreview] = useState<string[]>([]);
   const [loading, setLoading] = useState(false);
   const { isOpen, images: lightboxImages, currentIndex, openLightbox, closeLightbox } = useImageLightbox();
+  const { tiers } = usePricingTiers();
 
-  // Tính toán giá bán và preview theo quyền hạn
+  // Tính toán giá bán và preview tự động theo bảng mốc % được cập nhật từ Firestore
   const priceCalculation = useMemo(() => {
-    return calculateAccountPrice(form.price, isStaff);
-  }, [form.price, isStaff]);
+    return calculateAccountPrice(form.price, true, tiers);
+  }, [form.price, tiers]);
 
   const handleRerollCode = () => {
     setForm((prev) => ({ ...prev, code: generateCode() }));
@@ -141,7 +143,7 @@ export default function CreateProductForm() {
     }
 
     // Giá fake mặc định nếu không điền thì nhân 1.5 lần giá bán web
-    const finalSellingPrice = isStaff ? priceCalculation.sellingPrice : inputPrice;
+    const finalSellingPrice = priceCalculation.sellingPrice;
     const finalOriginalPrice = inputPrice;
     const finalFakePrice = form.fake_price
       ? Number(form.fake_price)
@@ -158,7 +160,7 @@ export default function CreateProductForm() {
         profile?.name ||
         user?.displayName ||
         user?.email?.split("@")[0] ||
-        (isAdmin ? "Admin" : "Nhân viên");
+        (isAdmin ? "Admin" : "Cộng tác viên");
 
       await addDoc(collection(db, "accounts"), {
         code: cleanCode,
@@ -170,7 +172,7 @@ export default function CreateProductForm() {
         // Giá thật người bán thu về
         original_price: finalOriginalPrice,
         // Phần trăm tăng thêm (chênh lệch)
-        markup_percent: isStaff ? priceCalculation.markupPercent : 0,
+        markup_percent: priceCalculation.markupPercent,
         fake_price: finalFakePrice,
         is_white: form.is_white,
         is_sale: form.is_sale,
@@ -191,9 +193,7 @@ export default function CreateProductForm() {
       });
 
       toast.success(
-        isStaff
-          ? `Đã đăng acc #${cleanCode}! Giá thật: ${formatVND(finalOriginalPrice)} -> Giá web (+${priceCalculation.markupPercent}%): ${formatVND(finalSellingPrice)} 🚀`
-          : `Đã đăng acc #${cleanCode} thành công! (Giá bán: ${formatVND(finalSellingPrice)}) 🚀`
+        `Đã đăng acc #${cleanCode}! Giá thật: ${formatVND(finalOriginalPrice)} -> Giá web (+${priceCalculation.markupPercent}%): ${formatVND(finalSellingPrice)} 🚀`
       );
 
       // Reset form
@@ -231,7 +231,7 @@ export default function CreateProductForm() {
           </h2>
           <p className="text-xs text-slate-500 mt-0.5">
             {isStaff
-              ? "Chế độ Nhân viên: Nhập giá thật của bạn, hệ thống sẽ tự động tính giá bán ra web kèm % chênh lệch."
+              ? "Chế độ Cộng tác viên: Nhập giá gốc của bạn, hệ thống sẽ tự động tính giá bán ra web kèm % chênh lệch."
               : "Chế độ Quản trị viên (Admin): Đăng bán trực tiếp không qua % chênh lệch."}
           </p>
         </div>
@@ -243,7 +243,7 @@ export default function CreateProductForm() {
               : "bg-emerald-100 text-emerald-700 border border-emerald-200"
           }`}
         >
-          {isAdmin ? "Admin" : "Nhân viên"}
+          {isAdmin ? "Admin" : "Cộng tác viên"}
         </span>
       </div>
 
@@ -318,19 +318,14 @@ export default function CreateProductForm() {
           <div className="min-h-[22px] flex items-center justify-between">
             <Label className="text-xs font-bold text-slate-700 flex items-center gap-1.5">
               <DollarSign className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
-              <span>{isStaff ? "Giá thật (Giá nhân viên nhận về)" : "Giá bán tài khoản"}</span>
+              <span>Giá thật (Giá bạn nhận về / Giá gốc)</span>
             </Label>
           </div>
           <MoneyInput
             value={form.price}
             onChange={(val) => setForm((prev) => ({ ...prev, price: val }))}
-            placeholder={isStaff ? "Nhập giá thật muốn nhận..." : "Nhập giá bán..."}
+            placeholder="Nhập giá gốc..."
           />
-          <p className="text-[11px] text-slate-500 mt-1 min-h-[16px] leading-tight">
-            {isStaff
-              ? "< 1 triệu: +30% | ≥ 1 triệu: +25% lên web"
-              : "Admin: Bán trực tiếp không tăng %"}
-          </p>
         </div>
 
         <div className="flex flex-col">
@@ -347,71 +342,56 @@ export default function CreateProductForm() {
             }
             placeholder="Tùy chọn (để trống tự tính)..."
           />
-          <p className="text-[11px] text-slate-400 mt-1 min-h-[16px] leading-tight">
-            Giá gạch hiển thị giảm giá trên web
-          </p>
         </div>
       </div>
 
-      {/* Preview giá thật lên Web dành riêng cho Nhân viên */}
-      {isStaff && (
-        <div className="bg-gradient-to-br from-indigo-50/80 via-purple-50/50 to-pink-50/40 border border-indigo-200/80 rounded-xl p-4 transition-all">
-          <div className="flex items-center justify-between mb-2">
-            <div className="flex items-center gap-1.5 font-bold text-xs text-indigo-900">
-              <Sparkles className="w-4 h-4 text-indigo-600 animate-pulse" />
-              <span>Xem trước (Preview) giá bán ra Web</span>
-            </div>
-            {priceCalculation.originalPrice > 0 && (
-              <span className="px-2 py-0.5 rounded-full text-[11px] font-black bg-indigo-600 text-white shadow-xs">
-                +{priceCalculation.markupPercent}% chênh lệch
-              </span>
-            )}
+      {/* Preview giá bán ra Web luôn bật */}
+      <div className="bg-gradient-to-br from-indigo-50/80 via-purple-50/50 to-pink-50/40 border border-indigo-200/80 rounded-xl p-4 transition-all">
+        <div className="flex items-center justify-between mb-2">
+          <div className="flex items-center gap-1.5 font-bold text-xs text-indigo-900">
+            <Sparkles className="w-4 h-4 text-indigo-600 animate-pulse" />
+            <span>Xem trước (Preview) giá bán ra Web</span>
           </div>
-
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5 pt-1">
-            <div className="bg-white/90 p-2.5 rounded-lg border border-slate-200/70">
-              <span className="text-[11px] font-medium text-slate-500 block">
-                Giá bạn nhận về (Giá thật):
-              </span>
-              <span className="text-sm font-bold text-slate-800">
-                {priceCalculation.originalPrice > 0
-                  ? formatVND(priceCalculation.originalPrice)
-                  : "Chưa nhập"}
-              </span>
-            </div>
-
-            <div className="bg-white/90 p-2.5 rounded-lg border border-slate-200/70">
-              <span className="text-[11px] font-medium text-slate-500 block">
-                Tiền chênh lệch shop hưởng:
-              </span>
-              <span className="text-sm font-bold text-purple-700">
-                +{formatVND(priceCalculation.profit)}
-              </span>
-            </div>
-
-            <div className="bg-gradient-to-r from-indigo-600 to-purple-600 text-white p-2.5 rounded-lg shadow-sm">
-              <span className="text-[11px] font-semibold text-indigo-100 block">
-                🔥 Giá hiển thị bán trên Web:
-              </span>
-              <span className="text-base font-black tracking-tight">
-                {priceCalculation.sellingPrice > 0
-                  ? formatVND(priceCalculation.sellingPrice)
-                  : "0 ₫"}
-              </span>
-            </div>
-          </div>
-
-          <p className="text-[11px] text-indigo-800/80 mt-2.5 flex items-center gap-1">
-            <AlertCircle className="w-3.5 h-3.5 shrink-0" />
-            Khách hàng trên web sẽ mua với giá{" "}
-            <strong className="font-bold underline">
-              {formatVND(priceCalculation.sellingPrice)}
-            </strong>
-            . Khi bán thành công, giá thật{" "}
-            <strong>{formatVND(priceCalculation.originalPrice)}</strong> là của bạn.
-          </p>
+          {priceCalculation.originalPrice > 0 && (
+            <span className="px-2 py-0.5 rounded-full text-[11px] font-black bg-indigo-600 text-white shadow-xs">
+              +{priceCalculation.markupPercent}% chênh lệch
+            </span>
+          )}
         </div>
-      )}
+
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5 pt-1">
+          <div className="bg-white/90 p-2.5 rounded-lg border border-slate-200/70">
+            <span className="text-[11px] font-medium text-slate-500 block">
+              Giá nhận về (Giá thật):
+            </span>
+            <span className="text-sm font-bold text-slate-800">
+              {priceCalculation.originalPrice > 0
+                ? formatVND(priceCalculation.originalPrice)
+                : "Chưa nhập"}
+            </span>
+          </div>
+
+          <div className="bg-white/90 p-2.5 rounded-lg border border-slate-200/70">
+            <span className="text-[11px] font-medium text-slate-500 block">
+              Tiền chênh lệch shop hưởng:
+            </span>
+            <span className="text-sm font-bold text-purple-700">
+              +{formatVND(priceCalculation.profit)}
+            </span>
+          </div>
+
+          <div className="bg-gradient-to-r from-indigo-600 to-purple-600 text-white p-2.5 rounded-lg shadow-sm">
+            <span className="text-[11px] font-semibold text-indigo-100 block">
+              🔥 Giá hiển thị bán trên Web:
+            </span>
+            <span className="text-base font-black tracking-tight">
+              {priceCalculation.sellingPrice > 0
+                ? formatVND(priceCalculation.sellingPrice)
+                : "0 ₫"}
+            </span>
+          </div>
+        </div>
+      </div>
 
       {/* Row 4: Highlight & Trạng thái */}
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
