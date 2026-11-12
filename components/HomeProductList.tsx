@@ -286,8 +286,8 @@ export default function HomeProductList({
           </Link>
         </div>
 
-        {/* CATEGORY PILLS — Đồng bộ 100% với Style của Kho Acc */}
-        <div className="flex flex-wrap items-center gap-2 mb-4 sm:mb-6">
+        {/* CATEGORY PILLS — Kích thước bằng nhau, responsive 3 item/hàng trên mobile, 6 item/hàng trên desktop */}
+        <div className="grid grid-cols-2 min-[360px]:grid-cols-3 md:grid-cols-6 gap-2 mb-4 sm:mb-6">
           {CATEGORY_PILLS.map((pill) => {
             const Icon = pill.icon;
             const isActive = currentTab === pill.id;
@@ -300,7 +300,7 @@ export default function HomeProductList({
                   e.preventDefault();
                   handleTabChange(pill.id);
                 }}
-                className={`inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl sm:rounded-full text-xs sm:text-sm font-semibold shrink-0 transition-all cursor-pointer select-none ${
+                className={`w-full h-10 sm:h-11 inline-flex items-center justify-center gap-1.5 px-2 rounded-xl sm:rounded-full text-xs sm:text-sm font-semibold transition-all cursor-pointer select-none ${
                   isActive
                     ? "bg-[#5B5DFE] text-white shadow-xs scale-[1.01]"
                     : "bg-white text-slate-700 hover:text-slate-900 hover:bg-slate-50 border border-slate-200/90 shadow-2xs"
@@ -315,7 +315,7 @@ export default function HomeProductList({
                       : "text-slate-500"
                   }`}
                 />
-                <span>{pill.label}</span>
+                <span className="truncate">{pill.label}</span>
               </button>
             );
           })}
