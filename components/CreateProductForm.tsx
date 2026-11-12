@@ -89,10 +89,10 @@ export default function CreateProductForm() {
   const { isOpen, images: lightboxImages, currentIndex, openLightbox, closeLightbox } = useImageLightbox();
   const { tiers } = usePricingTiers();
 
-  // Tính toán giá bán và preview tự động theo bảng mốc % được cập nhật từ Firestore
+  // Tính toán giá bán và preview tự động theo bảng mốc % (Admin bán trực tiếp, CTV tính theo mốc)
   const priceCalculation = useMemo(() => {
-    return calculateAccountPrice(form.price, true, tiers);
-  }, [form.price, tiers]);
+    return calculateAccountPrice(form.price, !isAdmin, tiers);
+  }, [form.price, isAdmin, tiers]);
 
   const handleRerollCode = () => {
     setForm((prev) => ({ ...prev, code: generateCode() }));
@@ -318,13 +318,13 @@ export default function CreateProductForm() {
           <div className="min-h-[22px] flex items-center justify-between">
             <Label className="text-xs font-bold text-slate-700 flex items-center gap-1.5">
               <DollarSign className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
-              <span>Giá thật (Giá bạn nhận về / Giá gốc)</span>
+              <span>{isAdmin ? "Giá bán ra Web (VND) *" : "Giá thật (Giá bạn nhận về / Giá gốc)"}</span>
             </Label>
           </div>
           <MoneyInput
             value={form.price}
             onChange={(val) => setForm((prev) => ({ ...prev, price: val }))}
-            placeholder="Nhập giá gốc..."
+            placeholder={isAdmin ? "Nhập giá bán ra web..." : "Nhập giá gốc..."}
           />
         </div>
 
@@ -345,53 +345,55 @@ export default function CreateProductForm() {
         </div>
       </div>
 
-      {/* Preview giá bán ra Web luôn bật */}
-      <div className="bg-gradient-to-br from-indigo-50/80 via-purple-50/50 to-pink-50/40 border border-indigo-200/80 rounded-xl p-4 transition-all">
-        <div className="flex items-center justify-between mb-2">
-          <div className="flex items-center gap-1.5 font-bold text-xs text-indigo-900">
-            <Sparkles className="w-4 h-4 text-indigo-600 animate-pulse" />
-            <span>Xem trước (Preview) giá bán ra Web</span>
+      {/* Preview giá bán ra Web — Chỉ hiển thị cho Cộng tác viên, phía Admin thì ẩn đi */}
+      {!isAdmin && (
+        <div className="bg-gradient-to-br from-indigo-50/80 via-purple-50/50 to-pink-50/40 border border-indigo-200/80 rounded-xl p-4 transition-all">
+          <div className="flex items-center justify-between mb-2">
+            <div className="flex items-center gap-1.5 font-bold text-xs text-indigo-900">
+              <Sparkles className="w-4 h-4 text-indigo-600 animate-pulse" />
+              <span>Xem trước (Preview) giá bán ra Web</span>
+            </div>
+            {priceCalculation.originalPrice > 0 && (
+              <span className="px-2 py-0.5 rounded-full text-[11px] font-black bg-indigo-600 text-white shadow-xs">
+                +{priceCalculation.markupPercent}% chênh lệch
+              </span>
+            )}
           </div>
-          {priceCalculation.originalPrice > 0 && (
-            <span className="px-2 py-0.5 rounded-full text-[11px] font-black bg-indigo-600 text-white shadow-xs">
-              +{priceCalculation.markupPercent}% chênh lệch
-            </span>
-          )}
+
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5 pt-1">
+            <div className="bg-white/90 p-2.5 rounded-lg border border-slate-200/70">
+              <span className="text-[11px] font-medium text-slate-500 block">
+                Giá nhận về (Giá thật):
+              </span>
+              <span className="text-sm font-bold text-slate-800">
+                {priceCalculation.originalPrice > 0
+                  ? formatVND(priceCalculation.originalPrice)
+                  : "Chưa nhập"}
+              </span>
+            </div>
+
+            <div className="bg-white/90 p-2.5 rounded-lg border border-slate-200/70">
+              <span className="text-[11px] font-medium text-slate-500 block">
+                Tiền chênh lệch shop hưởng:
+              </span>
+              <span className="text-sm font-bold text-purple-700">
+                +{formatVND(priceCalculation.profit)}
+              </span>
+            </div>
+
+            <div className="bg-gradient-to-r from-indigo-600 to-purple-600 text-white p-2.5 rounded-lg shadow-sm">
+              <span className="text-[11px] font-semibold text-indigo-100 block">
+                🔥 Giá hiển thị bán trên Web:
+              </span>
+              <span className="text-base font-black tracking-tight">
+                {priceCalculation.sellingPrice > 0
+                  ? formatVND(priceCalculation.sellingPrice)
+                  : "0 ₫"}
+              </span>
+            </div>
+          </div>
         </div>
-
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5 pt-1">
-          <div className="bg-white/90 p-2.5 rounded-lg border border-slate-200/70">
-            <span className="text-[11px] font-medium text-slate-500 block">
-              Giá nhận về (Giá thật):
-            </span>
-            <span className="text-sm font-bold text-slate-800">
-              {priceCalculation.originalPrice > 0
-                ? formatVND(priceCalculation.originalPrice)
-                : "Chưa nhập"}
-            </span>
-          </div>
-
-          <div className="bg-white/90 p-2.5 rounded-lg border border-slate-200/70">
-            <span className="text-[11px] font-medium text-slate-500 block">
-              Tiền chênh lệch shop hưởng:
-            </span>
-            <span className="text-sm font-bold text-purple-700">
-              +{formatVND(priceCalculation.profit)}
-            </span>
-          </div>
-
-          <div className="bg-gradient-to-r from-indigo-600 to-purple-600 text-white p-2.5 rounded-lg shadow-sm">
-            <span className="text-[11px] font-semibold text-indigo-100 block">
-              🔥 Giá hiển thị bán trên Web:
-            </span>
-            <span className="text-base font-black tracking-tight">
-              {priceCalculation.sellingPrice > 0
-                ? formatVND(priceCalculation.sellingPrice)
-                : "0 ₫"}
-            </span>
-          </div>
-        </div>
-      </div>
+      )}
 
       {/* Row 4: Highlight & Trạng thái */}
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
