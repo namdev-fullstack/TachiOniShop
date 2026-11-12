@@ -151,27 +151,27 @@ export default function ImagePreviewModal({
       {/* Bottom Bar: Nút Heart "Thêm vào yêu thích" & Nút "Trải nghiệm ngay" */}
       <div
         onClick={(e) => e.stopPropagation()}
-        className="w-full max-w-md pb-2 sm:pb-4 px-2 z-50 flex items-center justify-center gap-2.5 sm:gap-3 cursor-default"
+        className="w-full max-w-md pb-2 sm:pb-4 px-2.5 z-50 flex items-center justify-center gap-2 sm:gap-3 cursor-default"
       >
         {/* Nút Yêu thích nổi bật theo đúng yêu cầu */}
         <button
           type="button"
           onClick={handleToggleFavorite}
-          className={`flex-1 inline-flex items-center justify-center gap-2 py-2.5 px-4 rounded-2xl font-bold text-xs sm:text-sm transition-all cursor-pointer shadow-lg border ${
+          className={`flex-1 inline-flex items-center justify-center gap-1.5 sm:gap-2 py-2 sm:py-2.5 px-2 min-[360px]:px-3 sm:px-4 rounded-xl sm:rounded-2xl font-bold text-[11px] min-[360px]:text-xs sm:text-sm transition-all cursor-pointer shadow-lg border whitespace-nowrap select-none ${
             isFavorited
               ? "bg-red-500 hover:bg-red-600 text-white border-red-400/50"
               : "bg-white hover:bg-slate-100 text-slate-800 border-white/40"
           }`}
         >
           <Heart
-            className={`w-4 h-4 sm:w-5 sm:h-5 transition-transform active:scale-125 ${
+            className={`w-3.5 h-3.5 sm:w-4 sm:h-4 shrink-0 transition-transform active:scale-125 ${
               isFavorited ? "fill-white text-white" : "text-red-500"
             }`}
           />
-          <span>{isFavorited ? "Đã lưu yêu thích" : "Thêm vào yêu thích"}</span>
+          <span className="whitespace-nowrap">{isFavorited ? "Đã yêu thích" : "Yêu thích"}</span>
         </button>
 
-        {/* Nút Trải nghiệm ngay */}
+        {/* Nút Trải nghiệm ngay - Không bao giờ vỡ hàng trên mobile */}
         {activeItem && (
           <button
             type="button"
@@ -180,10 +180,10 @@ export default function ImagePreviewModal({
               onClose();
               router.push(`/contact?acc=${encodeURIComponent(activeItem.code || "")}`);
             }}
-            className="flex-1 inline-flex items-center justify-center gap-1.5 py-2.5 px-4 rounded-2xl font-bold text-xs sm:text-sm text-white bg-[#5B4EF6] hover:bg-[#4d32b5] transition-all cursor-pointer shadow-lg"
+            className="flex-1 inline-flex items-center justify-center gap-1 sm:gap-1.5 py-2 sm:py-2.5 px-2 min-[360px]:px-3 sm:px-4 rounded-xl sm:rounded-2xl font-bold text-[11px] min-[360px]:text-xs sm:text-sm text-white bg-[#5B4EF6] hover:bg-[#4d32b5] transition-all cursor-pointer shadow-lg whitespace-nowrap select-none"
           >
-            <Zap className="w-4 h-4 fill-amber-300 text-amber-300" />
-            <span>Trải nghiệm ngay</span>
+            <Zap className="w-3.5 h-3.5 sm:w-4 sm:h-4 fill-amber-300 text-amber-300 shrink-0" />
+            <span className="whitespace-nowrap">Trải nghiệm ngay</span>
           </button>
         )}
       </div>

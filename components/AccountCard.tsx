@@ -114,22 +114,22 @@ export default function AccountCard({
 
           {/* Nhãn dán Trắng TT trong ảnh - Sáng sủa, sắc nét, phẳng */}
           {item.is_white && (
-            <div className="absolute top-2 left-2 z-10 inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-white border border-emerald-400 text-emerald-700 text-[10px] sm:text-[11px] font-black select-none">
-              <ShieldCheck className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
+            <div className="absolute top-1.5 left-1.5 sm:top-2 sm:left-2 z-10 inline-flex items-center gap-0.5 sm:gap-1 px-1.5 sm:px-2 py-0.5 rounded-md bg-white border border-emerald-400 text-emerald-700 text-[9px] min-[360px]:text-[10px] sm:text-[11px] font-black select-none">
+              <ShieldCheck className="w-3 h-3 sm:w-3.5 sm:h-3.5 text-emerald-600 shrink-0" />
               <span>Trắng TT</span>
             </div>
           )}
 
           {/* Nút Yêu thích & Phóng to ảnh góc phải */}
-          <div className="absolute top-2 right-2 z-10 flex items-center gap-1.5">
+          <div className="absolute top-1.5 right-1.5 sm:top-2 sm:right-2 z-10 flex items-center gap-1 sm:gap-1.5">
             <button
               type="button"
               aria-label={isFavorited ? "Bỏ yêu thích" : "Thêm vào yêu thích"}
               onClick={handleToggleFavorite}
-              className="w-7 h-7 rounded-full bg-white/90 hover:bg-white text-slate-700 hover:text-red-500 shadow-md flex items-center justify-center transition-all cursor-pointer"
+              className="w-6 h-6 min-[360px]:w-7 min-[360px]:h-7 rounded-full bg-white/90 hover:bg-white text-slate-700 hover:text-red-500 shadow-md flex items-center justify-center transition-all cursor-pointer"
             >
               <Heart
-                className={`w-3.5 h-3.5 transition-transform active:scale-125 ${
+                className={`w-3 h-3 min-[360px]:w-3.5 min-[360px]:h-3.5 transition-transform active:scale-125 ${
                   isFavorited ? "text-red-500 fill-red-500" : "text-slate-600"
                 }`}
               />
@@ -142,38 +142,38 @@ export default function AccountCard({
                 e.stopPropagation();
                 onPreviewImage(imgSrc, item);
               }}
-              className="w-7 h-7 rounded-full bg-slate-900/75 hover:bg-black text-white flex items-center justify-center opacity-85 group-hover:opacity-100 transition-all cursor-pointer shadow-md"
+              className="w-6 h-6 min-[360px]:w-7 min-[360px]:h-7 rounded-full bg-slate-900/75 hover:bg-black text-white flex items-center justify-center opacity-85 group-hover:opacity-100 transition-all cursor-pointer shadow-md"
             >
-              <ZoomIn className="w-3.5 h-3.5" />
+              <ZoomIn className="w-3 h-3 min-[360px]:w-3.5 min-[360px]:h-3.5" />
             </button>
           </div>
         </div>
 
         {/* Thông tin: Mã #id, Title, Người đang xem, Giá thật & Giá fake */}
-        <div className="p-2.5 sm:p-3.5 space-y-1.5 sm:space-y-2">
+        <div className="p-2 min-[360px]:p-2.5 sm:p-3.5 space-y-1 sm:space-y-1.5">
           {/* Row #id của acc & Số người đang xem */}
-          <div className="flex items-center justify-between gap-1 flex-wrap">
-            <span className="inline-flex items-center text-[11px] sm:text-xs font-black font-mono text-red-600 bg-red-50 border border-red-200/80 px-1.5 py-0.5 rounded shadow-2xs">
+          <div className="flex items-center justify-between gap-1">
+            <span className="inline-flex items-center text-[10px] min-[360px]:text-[11px] sm:text-xs font-black font-mono text-red-600 bg-red-50 border border-red-200/80 px-1 sm:px-1.5 py-0.5 rounded shadow-2xs shrink-0">
               #{item.code}
             </span>
-            <div className="inline-flex items-center gap-1 text-[10px] sm:text-xs text-amber-700 bg-amber-50/90 border border-amber-200/80 px-1.5 py-0.5 rounded-md font-semibold shadow-2xs">
-              <Flame className="w-3 h-3 text-red-500 fill-red-500 animate-pulse shrink-0" />
-              <span>{viewers} người xem</span>
+            <div className="inline-flex items-center gap-0.5 sm:gap-1 text-[9px] min-[360px]:text-[10px] sm:text-xs text-amber-700 bg-amber-50/90 border border-amber-200/80 px-1 sm:px-1.5 py-0.5 rounded-md font-semibold shadow-2xs shrink-0">
+              <Flame className="w-2.5 h-2.5 sm:w-3 sm:h-3 text-red-500 fill-red-500 animate-pulse shrink-0" />
+              <span className="whitespace-nowrap">{viewers} xem</span>
             </div>
           </div>
 
           {/* Title của acc */}
-          <h3 className="text-xs sm:text-sm font-bold text-slate-800 line-clamp-2 group-hover:text-red-600 transition-colors drop-shadow-xs leading-snug">
+          <h3 className="text-[11px] min-[360px]:text-xs sm:text-sm font-bold text-slate-800 line-clamp-2 group-hover:text-red-600 transition-colors drop-shadow-xs leading-snug">
             {displayTitle}
           </h3>
 
           {/* Giá tiền 3D nổi bật & Giá fake */}
-          <div className="flex items-baseline gap-1.5 flex-wrap pt-0.5">
-            <span className="text-3d-price text-sm sm:text-base md:text-lg font-black text-red-600">
+          <div className="flex items-baseline gap-1 sm:gap-1.5 flex-wrap pt-0.5">
+            <span className="text-3d-price text-xs min-[360px]:text-sm sm:text-base md:text-lg font-black text-red-600 whitespace-nowrap">
               {formatPrice(realPrice)}
             </span>
             {fakePrice > realPrice && (
-              <span className="text-[11px] sm:text-xs text-slate-400 line-through">
+              <span className="text-[9.5px] min-[360px]:text-[10.5px] sm:text-xs text-slate-400 line-through whitespace-nowrap">
                 {formatPrice(fakePrice)}
               </span>
             )}
@@ -181,18 +181,18 @@ export default function AccountCard({
         </div>
       </div>
 
-      {/* Nút Trải Nghiệm Ngay */}
-      <div className="p-2 sm:p-3 pt-0 mt-auto">
+      {/* Nút Trải Nghiệm Ngay - Co giãn linh hoạt, không vỡ dòng trên màn hình <= 390px */}
+      <div className="p-1.5 min-[360px]:p-2 sm:p-3 pt-0 mt-auto">
         <button
           type="button"
           onClick={(e) => {
             e.stopPropagation();
             router.push(`/contact?acc=${encodeURIComponent(item.code || "")}`);
           }}
-          className="w-full inline-flex items-center justify-center gap-1 rounded-xl px-2.5 py-1.5 sm:py-2 text-[11px] sm:text-xs font-bold text-white uppercase tracking-wider bg-blue-600 hover:bg-blue-700 active:scale-95 shadow-xs hover:shadow transition-all cursor-pointer"
+          className="w-full inline-flex items-center justify-center gap-1 rounded-xl px-1 min-[360px]:px-2 py-1.5 sm:py-2 text-[10px] min-[360px]:text-[11px] sm:text-xs font-bold text-white uppercase tracking-tight sm:tracking-wider bg-blue-600 hover:bg-blue-700 active:scale-95 shadow-xs hover:shadow transition-all cursor-pointer whitespace-nowrap"
         >
-          <Zap className="w-3 h-3 fill-amber-300 text-amber-300 drop-shadow-xs" />
-          <span>Trải Nghiệm Ngay</span>
+          <Zap className="w-3 h-3 fill-amber-300 text-amber-300 drop-shadow-xs shrink-0" />
+          <span className="whitespace-nowrap">Trải Nghiệm Ngay</span>
         </button>
       </div>
     </motion.article>

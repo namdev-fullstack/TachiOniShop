@@ -34,7 +34,7 @@ export default function ConsultationSection({ className = "", accCode }: Consult
 
   return (
     <section className={`w-full py-4 select-none ${className}`}>
-      <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 space-y-3.5">
+      <div className="max-w-7xl mx-auto px-2.5 sm:px-6 lg:px-8 space-y-3.5">
         
         {/* 1. Khung card tư vấn: "Bạn cần tư vấn thêm?" */}
         <div className="bg-[#EEECFF] rounded-3xl p-4 sm:p-5 border border-[#5B4EF6]/15 shadow-xs">
@@ -70,14 +70,14 @@ export default function ConsultationSection({ className = "", accCode }: Consult
         </div>
 
         {/* 2. Thanh Action Bar: Nút Chat + Nút Trải nghiệm ngay */}
-        <div className="flex items-center gap-2.5 sm:gap-3">
+        <div className="flex items-center gap-2 sm:gap-3">
           {/* Nút Chat Zalo */}
           <a
             href="https://zalo.me/0966216495"
             target="_blank"
             rel="noopener noreferrer"
             aria-label="Nhắn tin Zalo hỗ trợ"
-            className="w-12 h-12 sm:w-13 sm:h-13 rounded-2xl bg-[#EEECFF] hover:bg-[#e2dfff] flex items-center justify-center shrink-0 transition-colors shadow-xs active:scale-95"
+            className="w-11 h-11 sm:w-13 sm:h-13 rounded-xl sm:rounded-2xl bg-[#EEECFF] hover:bg-[#e2dfff] flex items-center justify-center shrink-0 transition-colors shadow-xs active:scale-95"
           >
             <ChatMessageIcon className="w-5 h-5 sm:w-6 sm:h-6 text-[#5B4EF6]" />
           </a>
@@ -85,10 +85,10 @@ export default function ConsultationSection({ className = "", accCode }: Consult
           {/* Nút Trải nghiệm ngay */}
           <Link
             href={contactHref}
-            className="flex-1 h-12 sm:h-13 rounded-2xl bg-[#5B4EF6] hover:bg-[#4d32b5] text-white flex items-center justify-center gap-2 font-bold text-sm sm:text-base shadow-md hover:shadow-lg active:scale-[0.99] transition-all px-4"
+            className="flex-1 h-11 sm:h-13 rounded-xl sm:rounded-2xl bg-[#5B4EF6] hover:bg-[#4d32b5] text-white flex items-center justify-center gap-1.5 sm:gap-2 font-bold text-xs min-[360px]:text-sm sm:text-base shadow-md hover:shadow-lg active:scale-[0.99] transition-all px-3 sm:px-4 whitespace-nowrap"
           >
-            <span>Trải nghiệm ngay</span>
-            <ArrowRight className="w-4 h-4 sm:w-5 sm:h-5 stroke-[2.5]" />
+            <span className="whitespace-nowrap">Trải nghiệm ngay</span>
+            <ArrowRight className="w-3.5 h-3.5 sm:w-5 sm:h-5 stroke-[2.5] shrink-0" />
           </Link>
         </div>
 

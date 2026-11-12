@@ -30,7 +30,7 @@ export default function Home() {
       
       {/* 1. Phần Lời chào & Thanh tìm kiếm chuẩn thiết kế Figma */}
       <section className="w-full pt-3 sm:pt-5 pb-1">
-        <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8">
+        <div className="max-w-7xl mx-auto px-2.5 sm:px-6 lg:px-8">
           
           {/* Eyebrow Title */}
           <div className="flex items-center gap-1.5 mb-2.5">

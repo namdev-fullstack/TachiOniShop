@@ -117,9 +117,9 @@ export default function FavoritesPage() {
 
       {/* Danh sách acc yêu thích */}
       <section className="w-full py-2">
-        <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8">
+        <div className="max-w-7xl mx-auto px-2.5 sm:px-6 lg:px-8">
           {favorites.length > 0 ? (
-            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-2.5 sm:gap-4 md:gap-5">
+            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-2 sm:gap-3.5 md:gap-4">
               {favorites.map((item) => (
                 <AccountCard
                   key={item.id || item.code}

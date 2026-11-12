@@ -287,7 +287,7 @@ export default function HomeProductList({
         </div>
 
         {/* CATEGORY PILLS — Kích thước bằng nhau, responsive 3 item/hàng trên mobile, 6 item/hàng trên desktop */}
-        <div className="grid grid-cols-2 min-[360px]:grid-cols-3 md:grid-cols-6 gap-2 mb-4 sm:mb-6">
+        <div className="grid grid-cols-2 min-[360px]:grid-cols-3 md:grid-cols-6 gap-1.5 sm:gap-2 mb-3.5 sm:mb-6">
           {CATEGORY_PILLS.map((pill) => {
             const Icon = pill.icon;
             const isActive = currentTab === pill.id;
@@ -300,14 +300,14 @@ export default function HomeProductList({
                   e.preventDefault();
                   handleTabChange(pill.id);
                 }}
-                className={`w-full h-10 sm:h-11 inline-flex items-center justify-center gap-1.5 px-2 rounded-xl sm:rounded-full text-xs sm:text-sm font-semibold transition-all cursor-pointer select-none ${
+                className={`w-full h-9 min-[360px]:h-10 sm:h-11 inline-flex items-center justify-center gap-1 min-[360px]:gap-1.5 px-1 min-[360px]:px-2 rounded-xl sm:rounded-full text-[11px] min-[360px]:text-xs sm:text-sm font-semibold transition-all cursor-pointer select-none ${
                   isActive
                     ? "bg-[#5B5DFE] text-white shadow-xs scale-[1.01]"
                     : "bg-white text-slate-700 hover:text-slate-900 hover:bg-slate-50 border border-slate-200/90 shadow-2xs"
                 }`}
               >
                 <Icon
-                  className={`w-3.5 h-3.5 sm:w-4 sm:h-4 shrink-0 transition-colors ${
+                  className={`w-3 h-3 min-[360px]:w-3.5 min-[360px]:h-3.5 sm:w-4 sm:h-4 shrink-0 transition-colors ${
                     isActive
                       ? "text-white"
                       : pill.id === "sale"
@@ -323,7 +323,7 @@ export default function HomeProductList({
 
         {/* Grid Danh Sách Acc - 2 cột cực chuẩn trên Mobile */}
         {filteredAccounts.length > 0 ? (
-          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-2.5 sm:gap-4 md:gap-5">
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-2 sm:gap-3.5 md:gap-4">
             {filteredAccounts.slice(0, 12).map((item) => (
               <AccountCard
                 key={item.id}

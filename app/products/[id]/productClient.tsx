@@ -374,7 +374,7 @@ export default function ProductsPage() {
 
   return (
     <div className="min-h-screen bg-[#F8F8FC] py-3 sm:py-6">
-      <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 space-y-4 sm:space-y-5">
+      <div className="max-w-7xl mx-auto px-2.5 sm:px-6 lg:px-8 space-y-3.5 sm:space-y-5">
 
         {/* HEADING & SUBHEADING */}
         <div className="pt-1">
@@ -451,7 +451,7 @@ export default function ProductsPage() {
         </div>
 
         {/* CATEGORY PILLS — Kích thước bằng nhau, responsive 3 item/hàng trên mobile, 6 item/hàng trên desktop */}
-        <div className="grid grid-cols-2 min-[360px]:grid-cols-3 md:grid-cols-6 gap-2 py-1">
+        <div className="grid grid-cols-2 min-[360px]:grid-cols-3 md:grid-cols-6 gap-1.5 sm:gap-2 py-1">
           {CATEGORY_PILLS.map((pill) => {
             const Icon = pill.icon;
             const isActive = selectedCategory === pill.id;
@@ -463,14 +463,14 @@ export default function ProductsPage() {
                   setSelectedCategory(pill.id);
                   setPage(1);
                 }}
-                className={`w-full h-10 sm:h-11 inline-flex items-center justify-center gap-1.5 px-2 rounded-xl sm:rounded-full text-xs sm:text-sm font-semibold transition-all cursor-pointer select-none ${
+                className={`w-full h-9 min-[360px]:h-10 sm:h-11 inline-flex items-center justify-center gap-1 min-[360px]:gap-1.5 px-1 min-[360px]:px-2 rounded-xl sm:rounded-full text-[11px] min-[360px]:text-xs sm:text-sm font-semibold transition-all cursor-pointer select-none ${
                   isActive
                     ? "bg-[#5B5DFE] text-white shadow-xs scale-[1.01]"
                     : "bg-white text-slate-700 hover:text-slate-900 hover:bg-slate-50 border border-slate-200/90 shadow-2xs"
                 }`}
               >
                 <Icon
-                  className={`w-3.5 h-3.5 sm:w-4 sm:h-4 shrink-0 transition-colors ${
+                  className={`w-3 h-3 min-[360px]:w-3.5 min-[360px]:h-3.5 sm:w-4 sm:h-4 shrink-0 transition-colors ${
                     isActive
                       ? "text-white"
                       : pill.id === "sale"
@@ -535,7 +535,7 @@ export default function ProductsPage() {
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -8 }}
             transition={{ duration: 0.22, ease: "easeOut" }}
-            className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-2.5 sm:gap-4 md:gap-5"
+            className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-2 sm:gap-3.5 md:gap-4"
           >
           {loading ? (
             Array.from({ length: 8 }).map((_, i) => (

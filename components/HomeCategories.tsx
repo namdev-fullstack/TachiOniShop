@@ -69,7 +69,7 @@ export default function HomeCategories({
         </div>
 
         {/* 4 Categories Grid: Chuyển trang trực tiếp sang /products, không scroll neo xuống dưới */}
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5 sm:gap-4 md:gap-5">
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 sm:gap-3.5 md:gap-4">
           {HOME_CATEGORIES.map((cat) => {
             return (
               <Link

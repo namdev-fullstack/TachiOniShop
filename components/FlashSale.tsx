@@ -362,21 +362,21 @@ export default function FlashSale() {
                     </div>
 
                     {/* Nội dung chi tiết */}
-                    <div className="p-2 sm:p-3 space-y-1 sm:space-y-1.5">
+                    <div className="p-1.5 min-[360px]:p-2 sm:p-3 space-y-0.5 sm:space-y-1.5">
                       {/* Tiêu đề acc */}
-                      <h3 className="text-xs sm:text-sm font-bold text-slate-800 line-clamp-1 group-hover:text-red-600 transition-colors drop-shadow-xs">
+                      <h3 className="text-[11px] min-[360px]:text-xs sm:text-sm font-bold text-slate-800 line-clamp-1 group-hover:text-red-600 transition-colors drop-shadow-xs">
                         {acc.title}
                       </h3>
 
                       {/* Giá sale & giá fake */}
                       <div className="space-y-0.5 pt-0.5 pb-0.5">
-                        <div className="flex items-baseline gap-1.5 flex-wrap">
-                          <span className="text-3d-price text-xs sm:text-base font-black text-red-600">
+                        <div className="flex items-baseline gap-1 sm:gap-1.5 flex-wrap">
+                          <span className="text-3d-price text-xs min-[360px]:text-sm sm:text-base font-black text-red-600 whitespace-nowrap">
                             {formatPrice(acc.price)}
                           </span>
                         </div>
                         {acc.fake_price > acc.price && (
-                          <div className="text-[10px] sm:text-xs text-slate-400 line-through">
+                          <div className="text-[9.5px] min-[360px]:text-[10px] sm:text-xs text-slate-400 line-through whitespace-nowrap">
                             {formatPrice(acc.fake_price)}
                           </div>
                         )}
@@ -385,17 +385,17 @@ export default function FlashSale() {
                     </div>
                   </div>
 
-                  {/* Nút hành động Trải Nghiệm Ngay */}
-                  <div className="p-2 sm:p-3 pt-0">
+                  {/* Nút hành động Trải Nghiệm Ngay - Co giãn linh hoạt, không vỡ dòng */}
+                  <div className="p-1.5 min-[360px]:p-2 sm:p-3 pt-0">
                     <button
                       type="button"
                       onClick={() =>
                         router.push(`/contact?acc=${encodeURIComponent(acc.code)}`)
                       }
-                      className="w-full py-1.5 sm:py-2 rounded-xl text-white font-bold text-[11px] sm:text-xs uppercase tracking-wider flex items-center justify-center gap-1 bg-blue-600 hover:bg-blue-700 active:scale-95 shadow-xs hover:shadow transition-all cursor-pointer"
+                      className="w-full py-1.5 sm:py-2 px-1 rounded-xl text-white font-bold text-[10px] min-[360px]:text-[11px] sm:text-xs uppercase tracking-tight sm:tracking-wider flex items-center justify-center gap-1 bg-blue-600 hover:bg-blue-700 active:scale-95 shadow-xs hover:shadow transition-all cursor-pointer whitespace-nowrap"
                     >
-                      <Zap className="w-3 h-3 fill-amber-300 text-amber-300 drop-shadow-xs" />
-                      <span>Trải Nghiệm Ngay</span>
+                      <Zap className="w-3 h-3 fill-amber-300 text-amber-300 drop-shadow-xs shrink-0" />
+                      <span className="whitespace-nowrap">Trải Nghiệm Ngay</span>
                     </button>
                   </div>
 
