@@ -34,6 +34,7 @@ export const CATEGORY_PILLS: {
 
 export type AccItem = AccountCardData & {
   categoryType: "white" | "lq_under1m" | "lq_1m_3m" | "lq_over3m";
+  is_sale?: boolean;
 };
 
 // Dữ liệu mẫu chuẩn bị sẵn theo 4 thể loại chuẩn của hệ thống

@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState, useRef } from "react";
+import { useEffect, useMemo, useState, useRef, useCallback } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -37,6 +37,7 @@ import { collection, getDocs } from "firebase/firestore";
 import AccountCard from "@/components/AccountCard";
 import ImagePreviewModal from "@/components/ImagePreviewModal";
 import ConsultationSection from "@/components/ConsultationSection";
+import AccountFilters, { formatPriceDisplay } from "@/components/AccountFilters";
 import { matchAccountFuzzy } from "@/lib/searchUtils";
 import { motion, AnimatePresence } from "framer-motion";
 
@@ -133,6 +134,17 @@ function resolveCategoryType(
   return "lq_over3m";
 }
 
+function parseCategoryParam(query: string | null): CategoryKey {
+  if (!query) return "all";
+  const q = query.toLowerCase().trim();
+  if (q === "white") return "white";
+  if (q === "sale") return "sale";
+  if (q === "lq_under1m" || q === "cheap") return "lq_under1m";
+  if (q === "lq_1m_3m") return "lq_1m_3m";
+  if (q === "lq_over3m" || q === "vip") return "lq_over3m";
+  return "all";
+}
+
 const CATEGORY_PILLS: {
   id: CategoryKey;
   label: string;
@@ -152,6 +164,33 @@ export default function ProductsPage() {
   const catQuery = searchParams ? searchParams.get("category") : null;
   const urlSearchQuery = searchParams ? searchParams.get("search") || searchParams.get("q") : null;
   const focusQuery = searchParams ? searchParams.get("focus") : null;
+  const urlMinPrice = searchParams ? searchParams.get("minPrice") : null;
+  const urlMaxPrice = searchParams ? searchParams.get("maxPrice") : null;
+  const urlHeroes = searchParams ? searchParams.get("heroes") : null;
+
+  const initialMinPrice = urlMinPrice ? Math.max(0, parseInt(urlMinPrice, 10) || 0) : 0;
+  const initialMaxPrice = urlMaxPrice
+    ? Math.min(10000000, parseInt(urlMaxPrice, 10) || 10000000)
+    : 10000000;
+  const initialHeroes = useMemo(() => {
+    return urlHeroes
+      ? urlHeroes
+          .split(",")
+          .map(decodeURIComponent)
+          .map((s) => s.trim())
+          .filter(Boolean)
+      : [];
+  }, [urlHeroes]);
+
+  // ========================================
+  // ADVANCED FILTER STATES
+  // ========================================
+  const [minPrice, setMinPrice] = useState<number>(initialMinPrice);
+  const [maxPrice, setMaxPrice] = useState<number>(initialMaxPrice);
+  const [selectedHeroes, setSelectedHeroes] = useState<string[]>(initialHeroes);
+  const [isFilterOpen, setIsFilterOpen] = useState<boolean>(
+    Boolean(urlMinPrice || urlMaxPrice || (urlHeroes && initialHeroes.length > 0))
+  );
 
   // ========================================
   // DATA
@@ -167,51 +206,87 @@ export default function ProductsPage() {
   const inputRef = useRef<HTMLInputElement>(null);
   const [textWidth, setTextWidth] = useState(0);
 
-  // Đồng bộ từ khóa tìm kiếm khi URL thay đổi
-  useEffect(() => {
-    if (urlSearchQuery !== null) {
-      setSearch(urlSearchQuery);
-    }
-  }, [urlSearchQuery]);
-
-  // Tự động focus và cuộn đến ô tìm kiếm khi có param focus hoặc nhận event
-  useEffect(() => {
-    const focusInput = () => {
-      if (inputRef.current) {
-        inputRef.current.focus();
-        inputRef.current.scrollIntoView({ behavior: "smooth", block: "center" });
-      }
-    };
-
-    if (focusQuery) {
-      const timer = setTimeout(focusInput, 150);
-      return () => clearTimeout(timer);
-    }
-
-    const handleFocusEvent = () => {
-      focusInput();
-    };
-
-    window.addEventListener("focus-search-input", handleFocusEvent);
-    return () => window.removeEventListener("focus-search-input", handleFocusEvent);
-  }, [focusQuery]);
-
-  // Đo chiều dài text để đặt nút X ngay cạnh từ vừa gõ
-  useEffect(() => {
-    if (textMeasureRef.current) {
-      setTextWidth(textMeasureRef.current.offsetWidth);
-    }
-  }, [search]);
-
   const [selectedCategory, setSelectedCategory] = useState<CategoryKey>(
-    (catQuery as CategoryKey) || "all"
+    parseCategoryParam(catQuery)
   );
   const [sortKey, setSortKey] = useState<SortKey>("newest");
 
-  // Đồng bộ category khi URL query param thay đổi
+  // Đồng bộ toàn bộ trạng thái lọc lên URL Query Params
+  // Ví dụ: ?minPrice=200000&maxPrice=1500000&heroes=tachi,nakroth&category=white
+  const updateUrl = useCallback(
+    (newFilters?: {
+      search?: string;
+      category?: CategoryKey;
+      minPrice?: number;
+      maxPrice?: number;
+      heroes?: string[];
+    }) => {
+      if (typeof window === "undefined") return;
+
+      const currentSearch = newFilters?.search !== undefined ? newFilters.search : search;
+      const currentMin = newFilters?.minPrice !== undefined ? newFilters.minPrice : minPrice;
+      const currentMax = newFilters?.maxPrice !== undefined ? newFilters.maxPrice : maxPrice;
+      const currentHeroes = newFilters?.heroes !== undefined ? newFilters.heroes : selectedHeroes;
+      const currentCat = newFilters?.category !== undefined ? newFilters.category : selectedCategory;
+
+      const params = new URLSearchParams();
+
+      if (currentMin > 0) {
+        params.set("minPrice", currentMin.toString());
+      }
+      if (currentMax < 10000000) {
+        params.set("maxPrice", currentMax.toString());
+      }
+      if (currentHeroes && currentHeroes.length > 0) {
+        params.set("heroes", currentHeroes.join(","));
+      }
+      if (currentCat && currentCat !== "all") {
+        params.set("category", currentCat);
+      }
+      if (currentSearch && currentSearch.trim()) {
+        params.set("search", currentSearch.trim());
+      }
+
+      const queryString = params.toString();
+      const newPath = queryString ? `${window.location.pathname}?${queryString}` : window.location.pathname;
+      window.history.replaceState(null, "", newPath);
+    },
+    [search, selectedCategory, minPrice, maxPrice, selectedHeroes]
+  );
+
+  // Đồng bộ các param khi URL bên ngoài thay đổi (Back / Forward)
   useEffect(() => {
-    if (catQuery) setSelectedCategory(catQuery as CategoryKey);
-  }, [catQuery]);
+    if (urlSearchQuery !== null) setSearch(urlSearchQuery);
+    if (catQuery !== null) setSelectedCategory(parseCategoryParam(catQuery));
+    if (urlMinPrice !== null) setMinPrice(Math.max(0, parseInt(urlMinPrice, 10) || 0));
+    if (urlMaxPrice !== null) setMaxPrice(Math.min(10000000, parseInt(urlMaxPrice, 10) || 10000000));
+    if (urlHeroes !== null) {
+      setSelectedHeroes(
+        urlHeroes
+          .split(",")
+          .map(decodeURIComponent)
+          .map((s) => s.trim())
+          .filter(Boolean)
+      );
+    }
+  }, [urlSearchQuery, catQuery, urlMinPrice, urlMaxPrice, urlHeroes]);
+
+  const handleResetAll = useCallback(() => {
+    setSearch("");
+    setSelectedCategory("all");
+    setMinPrice(0);
+    setMaxPrice(10000000);
+    setSelectedHeroes([]);
+    setSortKey("newest");
+    setPage(1);
+    updateUrl({
+      search: "",
+      category: "all",
+      minPrice: 0,
+      maxPrice: 10000000,
+      heroes: [],
+    });
+  }, [updateUrl]);
 
   // ========================================
   // PAGINATION
@@ -300,13 +375,14 @@ export default function ProductsPage() {
   // Reset page khi filter
   useEffect(() => {
     setPage(1);
-  }, [selectedCategory, search, sortKey]);
+  }, [selectedCategory, search, sortKey, minPrice, maxPrice, selectedHeroes]);
 
   // ==========================================
   // FILTER + SORT LOGIC
   // ==========================================
   const filteredData = useMemo(() => {
     let result = data.filter((acc) => {
+      // 1. Tìm kiếm theo từ khóa (mã acc, tên, highlight)
       const matchSearch =
         !search.trim() ||
         matchAccountFuzzy(
@@ -314,6 +390,7 @@ export default function ProductsPage() {
           search
         );
 
+      // 2. Thể loại category
       const matchCategory =
         selectedCategory === "all"
           ? true
@@ -321,7 +398,22 @@ export default function ProductsPage() {
           ? Boolean(acc.is_sale)
           : acc.categoryType === selectedCategory;
 
-      return matchSearch && matchCategory;
+      // 3. Khoảng giá (Stepped dual-thumb price slider)
+      const matchPrice =
+        acc.price >= minPrice &&
+        (maxPrice >= 10000000 ? true : acc.price <= maxPrice);
+
+      // 4. Lọc theo tướng (Hot tags + custom input tags)
+      const matchHeroes =
+        selectedHeroes.length === 0 ||
+        selectedHeroes.some((heroQuery) =>
+          matchAccountFuzzy(
+            { code: acc.code, title: acc.title, highlight: acc.highlight },
+            heroQuery
+          )
+        );
+
+      return matchSearch && matchCategory && matchPrice && matchHeroes;
     });
 
     if (sortKey === "price_asc") {
@@ -332,7 +424,7 @@ export default function ProductsPage() {
     // "newest" đã sort từ fetch
 
     return result;
-  }, [data, search, selectedCategory, sortKey]);
+  }, [data, search, selectedCategory, minPrice, maxPrice, selectedHeroes, sortKey]);
 
   // ==========================================
   // PAGINATION
@@ -372,6 +464,17 @@ export default function ProductsPage() {
     lq_over3m: data.filter((a) => a.categoryType === "lq_over3m").length,
   }), [data]);
 
+  const isPriceFiltered = minPrice > 0 || maxPrice < 10000000;
+  const isHeroesFiltered = selectedHeroes.length > 0;
+  const activeAdvancedFilterCount =
+    (isPriceFiltered ? 1 : 0) + (isHeroesFiltered ? selectedHeroes.length : 0);
+  const hasAnyFilterActive =
+    search.trim() !== "" ||
+    selectedCategory !== "all" ||
+    isPriceFiltered ||
+    isHeroesFiltered ||
+    sortKey !== "newest";
+
   return (
     <div className="min-h-screen bg-[#F8F8FC] py-3 sm:py-6">
       <div className="max-w-7xl mx-auto px-2.5 sm:px-6 lg:px-8 space-y-3.5 sm:space-y-5">
@@ -409,8 +512,10 @@ export default function ProductsPage() {
                 window.dispatchEvent(new CustomEvent("search-input-focused"));
               }}
               onChange={(e) => {
-                setSearch(e.target.value);
+                const val = e.target.value;
+                setSearch(val);
                 setPage(1);
+                updateUrl({ search: val });
               }}
               className="h-12 pl-11 pr-10 rounded-2xl bg-white border border-slate-200/90 text-slate-900 placeholder:text-slate-400 text-sm shadow-2xs hover:border-slate-300 focus:outline-none focus:border-[#5B5DFE] focus-visible:ring-2 focus-visible:ring-[#5B5DFE]/20 transition-all"
             />
@@ -420,6 +525,8 @@ export default function ProductsPage() {
                 type="button"
                 onClick={() => {
                   setSearch("");
+                  setPage(1);
+                  updateUrl({ search: "" });
                   inputRef.current?.focus();
                 }}
                 className="absolute right-3.5 top-1/2 -translate-y-1/2 w-5 h-5 rounded-full bg-slate-200/90 hover:bg-slate-300 active:scale-90 text-slate-600 hover:text-slate-900 flex items-center justify-center transition-all cursor-pointer z-10 shadow-2xs"
@@ -433,22 +540,122 @@ export default function ProductsPage() {
           {/* Filter button */}
           <button
             type="button"
-            onClick={() => {
-              if (selectedCategory !== "all" || search) {
-                setSelectedCategory("all");
-                setSearch("");
-                setSortKey("newest");
-              } else {
-                inputRef.current?.focus();
-              }
-            }}
-            className="w-12 h-12 rounded-2xl bg-[#5B5DFE] hover:bg-[#4d4ff0] active:scale-95 text-white flex items-center justify-center shrink-0 shadow-sm transition-all cursor-pointer"
-            title="Bộ lọc"
-            aria-label="Bộ lọc"
+            onClick={() => setIsFilterOpen((prev) => !prev)}
+            className={`relative w-12 h-12 rounded-2xl flex items-center justify-center shrink-0 shadow-sm transition-all cursor-pointer ${
+              isFilterOpen
+                ? "bg-[#4345d9] text-white ring-2 ring-[#5B5DFE]/40"
+                : activeAdvancedFilterCount > 0
+                ? "bg-[#5B5DFE] text-white"
+                : "bg-white text-slate-700 border border-slate-200/90 hover:bg-slate-50"
+            }`}
+            title="Bộ lọc chuyên sâu"
+            aria-label="Bộ lọc chuyên sâu"
           >
             <SlidersHorizontal className="w-5 h-5" />
+            {activeAdvancedFilterCount > 0 && (
+              <span className="absolute -top-1 -right-1 bg-rose-500 text-white text-[10px] font-bold w-5 h-5 rounded-full flex items-center justify-center border-2 border-white shadow-xs">
+                {activeAdvancedFilterCount}
+              </span>
+            )}
           </button>
         </div>
+
+        {/* ADVANCED FILTER PANEL */}
+        <AnimatePresence>
+          {isFilterOpen && (
+            <motion.div
+              initial={{ opacity: 0, height: 0, y: -6 }}
+              animate={{ opacity: 1, height: "auto", y: 0 }}
+              exit={{ opacity: 0, height: 0, y: -6 }}
+              transition={{ duration: 0.22, ease: "easeInOut" }}
+              className="overflow-hidden"
+            >
+              <AccountFilters
+                minPrice={minPrice}
+                maxPrice={maxPrice}
+                selectedHeroes={selectedHeroes}
+                onPriceChange={(newMin, newMax) => {
+                  setMinPrice(newMin);
+                  setMaxPrice(newMax);
+                  setPage(1);
+                  updateUrl({ minPrice: newMin, maxPrice: newMax });
+                }}
+                onHeroesChange={(newHeroes) => {
+                  setSelectedHeroes(newHeroes);
+                  setPage(1);
+                  updateUrl({ heroes: newHeroes });
+                }}
+                onResetFilters={() => {
+                  setMinPrice(0);
+                  setMaxPrice(10000000);
+                  setSelectedHeroes([]);
+                  setPage(1);
+                  updateUrl({ minPrice: 0, maxPrice: 10000000, heroes: [] });
+                }}
+                onClose={() => setIsFilterOpen(false)}
+              />
+            </motion.div>
+          )}
+        </AnimatePresence>
+
+        {/* DẢI TÓM TẮT BỘ LỌC KHI ĐANG ĐÓNG PANEL MÀ CÓ BỘ LỌC HOẠT ĐỘNG */}
+        {!isFilterOpen && (isPriceFiltered || isHeroesFiltered) && (
+          <div className="flex flex-wrap items-center gap-1.5 p-2.5 rounded-xl bg-white border border-slate-200/80 text-xs shadow-2xs">
+            <span className="text-slate-500 font-semibold pl-1 flex items-center gap-1">
+              <Sparkles className="w-3.5 h-3.5 text-[#5B5DFE]" />
+              <span>Đang lọc:</span>
+            </span>
+
+            {isPriceFiltered && (
+              <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-lg bg-[#5B5DFE]/10 border border-[#5B5DFE]/25 text-[#5B5DFE] font-bold">
+                <span>
+                  {formatPriceDisplay(minPrice)} – {formatPriceDisplay(maxPrice, true)}
+                </span>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setMinPrice(0);
+                    setMaxPrice(10000000);
+                    updateUrl({ minPrice: 0, maxPrice: 10000000 });
+                  }}
+                  className="hover:opacity-70 p-0.5"
+                  title="Xóa lọc giá"
+                >
+                  <X className="w-3 h-3 stroke-[2.5]" />
+                </button>
+              </span>
+            )}
+
+            {selectedHeroes.map((hero) => (
+              <span
+                key={hero}
+                className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-lg bg-slate-100 text-slate-700 font-semibold border border-slate-200/60"
+              >
+                <span>{hero}</span>
+                <button
+                  type="button"
+                  onClick={() => {
+                    const next = selectedHeroes.filter((h) => h !== hero);
+                    setSelectedHeroes(next);
+                    updateUrl({ heroes: next });
+                  }}
+                  className="hover:opacity-70 p-0.5 text-slate-400 hover:text-slate-700"
+                  title={`Xóa lọc ${hero}`}
+                >
+                  <X className="w-3 h-3 stroke-[2.5]" />
+                </button>
+              </span>
+            ))}
+
+            <button
+              type="button"
+              onClick={() => setIsFilterOpen(true)}
+              className="text-[#5B5DFE] font-bold hover:underline ml-auto pr-1 cursor-pointer"
+            >
+              Mở bộ lọc
+            </button>
+          </div>
+        )}
 
         {/* CATEGORY PILLS — Kích thước bằng nhau, responsive 3 item/hàng trên mobile, 6 item/hàng trên desktop */}
         <div className="grid grid-cols-2 min-[360px]:grid-cols-3 md:grid-cols-6 gap-1.5 sm:gap-2 py-1">
@@ -462,6 +669,7 @@ export default function ProductsPage() {
                 onClick={() => {
                   setSelectedCategory(pill.id);
                   setPage(1);
+                  updateUrl({ category: pill.id });
                 }}
                 className={`w-full h-9 min-[360px]:h-10 sm:h-11 inline-flex items-center justify-center gap-1 min-[360px]:gap-1.5 px-1 min-[360px]:px-2 rounded-xl sm:rounded-full text-[11px] min-[360px]:text-xs sm:text-sm font-semibold transition-all cursor-pointer select-none ${
                   isActive
@@ -490,15 +698,10 @@ export default function ProductsPage() {
             <span className="text-sm font-semibold text-slate-600">
               {filteredData.length} tài khoản
             </span>
-            {(search || selectedCategory !== "all" || sortKey !== "newest") && (
+            {hasAnyFilterActive && (
               <button
                 type="button"
-                onClick={() => {
-                  setSearch("");
-                  setSelectedCategory("all");
-                  setSortKey("newest");
-                  setPage(1);
-                }}
+                onClick={handleResetAll}
                 className="text-xs text-[#5B5DFE] hover:underline font-bold flex items-center gap-1 cursor-pointer transition-colors"
               >
                 <RotateCcw className="w-3 h-3" />
@@ -588,7 +791,7 @@ export default function ProductsPage() {
               </p>
               <Button
                 variant="outline"
-                onClick={() => { setSearch(""); setSelectedCategory("all"); setSortKey("newest"); }}
+                onClick={handleResetAll}
                 className="rounded-xl mt-2 text-xs"
               >
                 Đặt lại bộ lọc

@@ -29,7 +29,7 @@ export default function Home() {
     <main className="min-h-screen bg-[#F8F8FC] text-slate-900 selection:bg-purple-100 selection:text-purple-900 overflow-x-hidden pb-20 md:pb-12">
       
       {/* 1. Phần Lời chào & Thanh tìm kiếm chuẩn thiết kế Figma */}
-      <section className="w-full pt-3 sm:pt-5 pb-1">
+      <section className="w-full pt-3.5 sm:pt-6 pb-2 sm:pb-3">
         <div className="max-w-7xl mx-auto px-2.5 sm:px-6 lg:px-8">
           
           {/* Eyebrow Title */}
@@ -81,7 +81,7 @@ export default function Home() {
       <HomeBanner />
 
       {/* 3. Menu Nav / Thanh Cam kết & Hỗ trợ chuẩn Figma */}
-      <section className="w-full py-2">
+      <section className="w-full py-3 sm:py-4">
         <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between gap-2 p-2.5 sm:p-3 rounded-2xl bg-white border border-slate-200/80 shadow-2xs">
             {/* Cam kết An toàn, uy tín */}
@@ -141,7 +141,7 @@ export default function Home() {
       />
 
       {/* 7. Khung tư vấn thêm & Action bar chuẩn thiết kế Figma */}
-      <ConsultationSection className="mt-2" />
+      <ConsultationSection className="mt-6 sm:mt-10" />
 
     </main>
   );

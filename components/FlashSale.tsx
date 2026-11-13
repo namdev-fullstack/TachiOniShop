@@ -238,7 +238,7 @@ export default function FlashSale() {
   }, [items]);
 
   return (
-    <section className="w-full py-2 sm:py-3 md:py-4">
+    <section className="w-full py-3.5 sm:py-6 md:py-8">
       <div className="max-w-7xl mx-auto px-2.5 sm:px-6 lg:px-8">
 
         {/* CONTAINER FLASH SALE DẠNG STRIP SANG TRỌNG VỚI NỀN CHUYỂN ĐỘNG NHẸ NHÀNG (ĐÃ BỎ BÓNG NGOÀI BORDER) */}
