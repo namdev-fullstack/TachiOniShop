@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
-import { Flame, Zap, ZoomIn, ShieldCheck, Heart } from "lucide-react";
+import { Eye, Zap, ZoomIn, ShieldCheck, Heart } from "lucide-react";
 import { formatPrice } from "@/lib/utils";
 import { motion } from "framer-motion";
 import { isItemFavorite, toggleFavoriteItem } from "@/lib/favorites";
@@ -156,9 +156,9 @@ export default function AccountCard({
             <span className="inline-flex items-center text-[10px] min-[360px]:text-[11px] sm:text-xs font-black font-mono text-red-600 bg-red-50 border border-red-200/80 px-1 sm:px-1.5 py-0.5 rounded shadow-2xs shrink-0">
               #{item.code}
             </span>
-            <div className="inline-flex items-center gap-0.5 sm:gap-1 text-[9px] min-[360px]:text-[10px] sm:text-xs text-amber-700 bg-amber-50/90 border border-amber-200/80 px-1 sm:px-1.5 py-0.5 rounded-md font-semibold shadow-2xs shrink-0">
-              <Flame className="w-2.5 h-2.5 sm:w-3 sm:h-3 text-red-500 fill-red-500 animate-pulse shrink-0" />
-              <span className="whitespace-nowrap">{viewers} xem</span>
+            <div className="inline-flex items-center gap-1 text-[10px] min-[360px]:text-[11px] sm:text-xs text-slate-500 font-medium shrink-0">
+              <Eye className="w-3 h-3 sm:w-3.5 sm:h-3.5 text-slate-500 shrink-0" />
+              <span className="whitespace-nowrap">{viewers} đang xem</span>
             </div>
           </div>
 
